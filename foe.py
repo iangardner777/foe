@@ -1,6 +1,8 @@
 import os
 import time
 import win32api, win32con, win32gui
+from Rect import *
+from Locs import *
 
 from PIL import ImageGrab, ImageOps
 from numpy import *
@@ -21,8 +23,10 @@ os_sep = "\\"
 ##### OS #####
 def resizeWindow(hwnd, rect):
     #print(hwnd, rect)
-    win32gui.MoveWindow(hwnd, rect[0] - 7, rect[1],
-                        rect[2] + host_x + host_width_pad, rect[3] + host_y + host_height_pad, true)
+    win32gui.MoveWindow(hwnd, rect.x - 7, rect.y,
+                        rect.width + host_x + host_width_pad, rect.height + host_y + host_height_pad, true)
+    # win32gui.MoveWindow(hwnd, rect[0] - 7, rect[1],
+    #                     rect[2] + host_x + host_width_pad, rect[3] + host_y + host_height_pad, true)
 
 def wait(duration):
     time.sleep(duration)
@@ -114,25 +118,25 @@ def pointForRightOffset(point):
 def pointForScroll(point):
     return (point[0] - game_scroll[0], point[1] - game_scroll[1])
 
-def pointToRect(point, size=100):
-    return (point[0] - size/2, point[1] - size/2, size, size)
-
-def pointsToRect(topLeft, bottomRight):
-    return (topLeft[0], topLeft[1], bottomRight[0] - topLeft[0], bottomRight[1] - topLeft[1])
+# def pointToRect(point, size=100):
+#     return (point[0] - size/2, point[1] - size/2, size, size)
+#
+# def pointsToRect(topLeft, bottomRight):
+#     return (topLeft[0], topLeft[1], bottomRight[0] - topLeft[0], bottomRight[1] - topLeft[1])
 
 def rectToScreen(rect):
     x = rect[0] + host_x
     y = rect[1] + host_y
     return (x, y, x + rect[2], y + rect[3])
 
-def rectMiddle(rect):
-    return (rect[0] + rect[2]/2, rect[1] + rect[3]/2)
-
-def rectPlusX(rect, x):
-    return (rect[0] + x, rect[1], rect[2], rect[3])
-
-def rectExpand(rect, x):
-    return (rect[0] - x, rect[1] - x, rect[2] + x*2, rect[3] + x*2)
+# def rectMiddle(rect):
+#     return (rect[0] + rect[2]/2, rect[1] + rect[3]/2)
+#
+# def rectPlusX(rect, x):
+#     return (rect[0] + x, rect[1], rect[2], rect[3])
+#
+# def rectExpand(rect, x):
+#     return (rect[0] - x, rect[1] - x, rect[2] + x*2, rect[3] + x*2)
 
 ##### Computer Vision #####
 def screenShot(rect):
@@ -325,15 +329,17 @@ def startGame(quick=false):
     verySlowClick(Coords.chrome_taskbar)
     resizeChrome()
     slowClick(Coords.foe_shortcut, 20)
-    #resizeChrome()
-    #slowClick(Coords.chrome_recent)
     slowClick(Coords.play_game)
     slowClick(Coords.sineria_select)
     
-def resizeChrome():
-    #deadClick()
+def resizeChrome(click=true):
+    if(click):
+        deadClick()
     hwnd = win32gui.GetForegroundWindow()
-    resizeWindow(hwnd, Coords.full_screen)
+    # resizeWindow(hwnd, Rect.fromTuple(Coords.full_screen))
+    resizeWindow(hwnd, Locs.full_screen)
+    # resizeWindow(hwnd, Rect(Coords.full_screen[0], Coords.full_screen[1], Coords.full_screen[2], Coords.full_screen[3]))
+    # resizeWindow(hwnd, Coords.full_screen)
 
 def dragScreenSafe(offset):
     dragScreen(offset)
@@ -514,7 +520,7 @@ def doStuff2(alwaysCheckTreasure=false, checkNeighbors=true, start=true):
         deadClick()
         resizeChrome()
         deadClick(2)
-        
+
         if(i % 10 == 0 and (i != 0 or alwaysCheckTreasure)):
             runChecks(true, checkNeighbors)
         else:
@@ -543,19 +549,14 @@ def startEvent():
 
 def main():
     pass
-    #leftClick()
-    getCoords()
- 
-if __name__ == '__main__':
-    main()
+    resizeChrome()
 
-    
 
 class Coords:
     chrome_taskbar = (612, 1472)
     chrome_close = (1335, -97)
     foe_shortcut = (16, -16)
-    
+
     chrome_recent = (412, 450)
     play_game = (987, 451)
     sineria_select = (670, 281)
@@ -573,7 +574,7 @@ class Coords:
     tavern_collect = (612, 707)
     tavern_ok = (640, 900)
 
-    #treasure_hunt_rect = (3, 341, 54, 54)
+    # treasure_hunt_rect = (3, 341, 54, 54)
     treasure_hunt_rect = (48, 451, 5, 11)
     treasure_hunt_rect_2 = (48, 361, 5, 11)
     treasure_hunt_rect_1 = (48, 271, 5, 11)
@@ -615,7 +616,7 @@ class Coords:
 
     friends_forward_button = (chair_rect[0] + friend_spacing*5 + 35, chair_rect[1] - 20)
     friends_back_button = (chair_rect[0] - friend_spacing + 10, chair_rect[1] + 10)
-    dead_click = (friends_forward_button[0] + 30, full_screen[3] - 10)
+    dead_click = (friends_forward_button[0] + 30, Locs.full_screen.height - 10)
 
 class Colors:
     def nameOf(key):
@@ -677,3 +678,7 @@ class Colors:
 
     blueprint_close = (123, 38, 26)
     blueprint_close_2= (122, 37, 25)
+
+
+if __name__ == '__main__':
+    main()
