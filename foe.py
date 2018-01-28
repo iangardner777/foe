@@ -20,7 +20,7 @@ os_sep = "\\"
 
 ##### OS #####
 def resizeWindow(hwnd, rect):
-    print(hwnd, rect)
+    #print(hwnd, rect)
     win32gui.MoveWindow(hwnd, rect[0] - 7, rect[1],
                         rect[2] + host_x + host_width_pad, rect[3] + host_y + host_height_pad, true)
 
@@ -83,7 +83,7 @@ def mousePos(point):
     
 def setMousePos(point):
     win32api.SetCursorPos((int(host_x + point[0]), int(host_y + point[1])))
-     
+    
 def getCoords(p=true):
     x,y = win32api.GetCursorPos()
     x = x - host_x
@@ -230,7 +230,8 @@ def confirmColorSum(key):
     return getColorSum(rectAndSum[0]) == rectAndSum[1]
 
 def closeBluePrintIfNecessary():
-    if(getColorAt(Coords.blueprint_close) == Colors.blueprint_close):
+    color = getColorAt(Coords.blueprint_close)
+    if(color == Colors.blueprint_close or color == Colors.blueprint_close_2):
         slowClick(Coords.blueprint_close)
         return true
 
@@ -306,6 +307,10 @@ def doAid(chairRect, i, attempts=2):
     if(attempts > 1):
         print("Missed aid: " + str(i) + '-' + str(aidColor) + " -- attemptsLeft: ", attempts - 1)
         wait(2)
+        if(closeIncidentIfNecessary()):
+            print("Incident was up during aid.")
+        if(closeBluePrintIfNecessary()):
+            print("Blueprint was up during aid.")
         doAid(chairRect, i, attempts - 1)
     else:
         friendRect = rectPlusX(Coords.friend_rect, i*Coords.friend_spacing)
@@ -316,14 +321,17 @@ def doAid(chairRect, i, attempts=2):
 
 
 ##### Functions #####
-def startGame():
+def startGame(quick=false):
+    verySlowClick(Coords.chrome_taskbar)
     resizeChrome()
-    slowClick(Coords.chrome_recent)
-    slowClick(Coords.play_game, 1)
+    slowClick(Coords.foe_shortcut, 20)
+    #resizeChrome()
+    #slowClick(Coords.chrome_recent)
+    slowClick(Coords.play_game)
     slowClick(Coords.sineria_select)
     
 def resizeChrome():
-    deadClick()
+    #deadClick()
     hwnd = win32gui.GetForegroundWindow()
     resizeWindow(hwnd, Coords.full_screen)
 
@@ -372,7 +380,8 @@ def checkTavern():
     if(findTavern() != true): return
 
     verySlowClick(pointForScroll(Coords.tavern))
-    if(getColorAt(Coords.last_tavern_seat) != Colors.last_tavern_seat):
+    color = getColorAt(Coords.last_tavern_seat)
+    if(color != Colors.last_tavern_seat and color != Colors.last_tavern_seat_2):
         print("Tavern full, collecting.")
         slowClick(Coords.tavern_collect)
     slowClick(Coords.tavern_ok)
@@ -405,7 +414,7 @@ def clickFriendsTab():
         
     clickFriendsBack()
     
-def checkTavernSeats():
+def checkTavernSeats(checkNeighbors=true):
     clickFriendsTab()
     for i in range(29):
         checkAid(true)
@@ -416,10 +425,11 @@ def checkTavernSeats():
         checkAid()
         clickFriendsForward()
 
-    clickNeighborsTab()
-    for i in range(20):
-        checkAid()
-        clickFriendsForward()
+    if(checkNeighbors):
+        clickNeighborsTab()
+        for i in range(20):
+            checkAid()
+            clickFriendsForward()
 
 shouldCheckTreasure = true
 def checkTreasureHunt(alwaysCheck=false):
@@ -462,12 +472,13 @@ def checkTreasureHunt(alwaysCheck=false):
             saveAndExitTreasure(i)
             return
 
-    print("Couldn't find Collect button!")
-    saveImage(image, "treausre_miss")
-    for i in range(6):
-        point = pointForRightOffset(Coords.treasure_left_middle[i])
-        rect = pointToRect(point, 100)
-        saveImage(screenShot(rect), "treausre_miss__" + str(i))
+    if(alwaysCheck == false):
+        print("Couldn't find Collect button!")
+        saveImage(image, "treausre_miss")
+        for i in range(6):
+            point = pointForRightOffset(Coords.treasure_left_middle[i])
+            rect = pointToRect(point, 100)
+            saveImage(screenShot(rect), "treausre_miss__" + str(i))
     
     verySlowClick(Coords.treasure_x_left_middle)
 
@@ -488,7 +499,37 @@ def doStuff():
         checkTreasureHunt()
         checkTavern()
         checkTavernSeats()
-        wait(600)
+        checkTreasureHunt()
+        wait(300)
+        checkTreasureHunt()
+        wait(300)
+
+def doStuff2(alwaysCheckTreasure=false, checkNeighbors=true, start=true):
+    for i in range(1000):
+        print('iteration: ', i)
+        if(i != 0 or start):
+            startGame()
+            wait(30)
+
+        deadClick()
+        resizeChrome()
+        deadClick(2)
+        
+        if(i % 10 == 0 and (i != 0 or alwaysCheckTreasure)):
+            runChecks(true, checkNeighbors)
+        else:
+            runChecks(false, checkNeighbors)
+
+        slowClick(Coords.chrome_close)
+        wait(1200)
+
+def runChecks(alwaysCheckTreasure=false, checkNeighbors=true):
+    deadClick()
+    resizeChrome()
+    checkTreasureHunt(alwaysCheckTreasure)
+    checkTavern()
+    checkTavernSeats(checkNeighbors)
+    checkTreasureHunt()
 
 def startEvent():
     myList = []
@@ -511,6 +552,10 @@ if __name__ == '__main__':
     
 
 class Coords:
+    chrome_taskbar = (612, 1472)
+    chrome_close = (1335, -97)
+    foe_shortcut = (16, -16)
+    
     chrome_recent = (412, 450)
     play_game = (987, 451)
     sineria_select = (670, 281)
@@ -529,8 +574,8 @@ class Coords:
     tavern_ok = (640, 900)
 
     #treasure_hunt_rect = (3, 341, 54, 54)
-    #treasure_hunt_rect_3 = (48, 451, 5, 11)
-    treasure_hunt_rect = (48, 361, 5, 11)
+    treasure_hunt_rect = (48, 451, 5, 11)
+    treasure_hunt_rect_2 = (48, 361, 5, 11)
     treasure_hunt_rect_1 = (48, 271, 5, 11)
     treasure_hunt = rectMiddle(treasure_hunt_rect)
     treasure_x_left_middle = (1133, 858)
@@ -601,6 +646,7 @@ class Colors:
     }
 
     last_tavern_seat = (38, 38, 41)
+    last_tavern_seat_2 = (37, 37, 41)
     
     treasure_hunt_normal = 33865
     treasure_hunt_disabled = 14544
@@ -630,3 +676,4 @@ class Colors:
     incident_ok = (158, 89, 37)
 
     blueprint_close = (123, 38, 26)
+    blueprint_close_2= (122, 37, 25)
