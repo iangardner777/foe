@@ -1,5 +1,6 @@
 from Rect import *
 
+
 class Colors:
     def nameOf(key):
         dict = vars(Colors)
@@ -13,25 +14,25 @@ class Colors:
     TOP_LEFT_900 = "top_left_900_0"
     TOP_LEFT_950 = "top_left_950_0"
     sums = {
-        TOP_LEFT: (Rect(200, 200, 20, 20), 8778),
+        TOP_LEFT    :(Rect(200, 200, 20, 20), 8778),
         # TOP_LEFT : (Rect(100, 100, 20, 20), 18686),
-        TOP_LEFT_850: (Rect(200, 200, 20, 20), 7732),
+        TOP_LEFT_850:(Rect(200, 200, 20, 20), 7732),
         # TOP_LEFT_850 : (Rect(100, 100, 20, 20), 11586),
-        TOP_LEFT_900: (Rect(200, 200, 20, 20), 11158),
+        TOP_LEFT_900:(Rect(200, 200, 20, 20), 11158),
         # TOP_LEFT_900 : (Rect(100, 100, 20, 20), 12311),
-        TOP_LEFT_950: (Rect(200, 200, 20, 20), 4741)
+        TOP_LEFT_950:(Rect(200, 200, 20, 20), 4741)
         # TOP_LEFT_950 : (Rect(100, 100, 20, 20), 8972)
     }
 
     FRIEND_ACCEPT_OKAY = "friend_accept_ok"
     loc_to_color = {
-        FRIEND_ACCEPT_OKAY: (Point(721, 720), (151, 83, 34))
+        FRIEND_ACCEPT_OKAY:(Point(721, 720), (151, 83, 34))
     }
 
     last_tavern_seat = (38, 38, 41)
     last_tavern_seat_2 = (37, 37, 41)
 
-    treasure_hunt_normal = 33865
+    # treasure_hunt_normal = 33865
     treasure_hunt_disabled = 14544
     treasure_hunt_ready = 4882
     treasure_hunt_normal = 7707

@@ -1,9 +1,5 @@
 from Rect import *
 
-host_x = 0
-host_y = 110
-host_width_pad = 14
-host_height_pad = 7
 
 class Locs:
     chrome_taskbar = Point(612, 1472)
@@ -13,9 +9,6 @@ class Locs:
     chrome_recent = Point(412, 450)
     play_game = Point(987, 451)
     sineria_select = Point(670, 281)
-
-    # full_screen = Rect(0, 0, 1364, 1245)
-    full_screen = Rect(0, 0, 1375 - host_width_pad, 1254 - host_height_pad)
 
     winter_event_start = Point(683, 483)
     winter_event_top_left = Point(354, 573)
@@ -67,6 +60,5 @@ class Locs:
     blueprint_close = Point(720, 832)
     incident_ok = Point(636, 732)
 
-    friends_forward_button = Point(chair_rect[0] + friend_spacing * 5 + 35, chair_rect[1] - 20)
-    friends_back_button = Point(chair_rect[0] - friend_spacing + 10, chair_rect[1] + 10)
-    dead_click = Point(friends_forward_button[0] + 30, full_screen.height - 10)
+    friends_forward_button = Point(chair_rect.x + friend_spacing*5 + 35, chair_rect.y - 20)
+    friends_back_button = Point(chair_rect.x - friend_spacing + 10, chair_rect.y + 10)
