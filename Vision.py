@@ -21,6 +21,13 @@ def saveFullScreenShot(text):
     saveImage(fullScreenShot(), text)
 
 
+def saveFullScreenShotToFolder(folder, folder2=None, text=None):
+    name = f"{folder}{os_sep}" if folder2 is None else f"{folder}{os_sep}{folder2}{os_sep}"
+    if text is not None:
+        name += text
+    saveImage(fullScreenShot(), name)
+
+
 def saveImage(image, text, with_time=true):
     name = os.getcwd() + os_sep + str(text)
     if with_time: name += '__' + str(int(time.time()))
@@ -42,7 +49,7 @@ def saveScreenRect(rect, expand, text, image_text, folder='', miss=false):
 def trackPixelHorizontal(loc, rgb, image):
     for i in range(-50, 50):
         new_loc = Point(loc.x + i, loc.y)
-        pixel = image.getpixel(new_loc.toTuple())
+        pixel = getColorAt(new_loc, image)
         if pixel == rgb: return i
     return nan
 
@@ -69,7 +76,7 @@ def findPixelHelper(loc, rgb, image, r):
     for i in range(-r, r):
         for j in range(-r, r):
             new_loc = Point(loc.x + i, loc.y + j)
-            pixel = image.getpixel(new_loc.toTuple())
+            pixel = getColorAt(new_loc, image)
             if pixel == rgb: return new_loc
     return nan
 
@@ -77,23 +84,24 @@ def findPixelHelper(loc, rgb, image, r):
 def getColorAt(loc, image=None):
     if image == None:
         image = screenShot(Rect(loc.x, loc.y, 1, 1))
-        return image.getpixel((0, 0))
-    return image.getpixel(loc.toTuple())
+        return Color.fromTuple(image.getpixel((0, 0)))
+    return Color.fromTuple(image.getpixel(loc.toTuple()))
 
 
-def saveLocToColor(key):
-    loc = mouseLoc()
-    mousePos(Host.dead_click)
-    wait(3)
-    # loc = Colors.loc_to_color[key][0]
-    color = getColorAt(loc)
-
+def saveLocToColor(key, loc=None):
     key_name = Colors.nameOf(key)
-    print(key_name, ":", (loc, color))
-
-    wait(4)
-    color = getColorAt(loc)
-    print(key_name, ":", (loc, color))
+    if loc is None:
+        loc = mouseLoc()
+        mousePos(Host.dead_click)
+        wait(3)
+        color = getColorAt(loc)
+        print(f"{key_name} : ({loc.codeString()}, {color.codeString()})")
+        wait(4)
+        color = getColorAt(loc)
+        print(f"{key_name} : ({loc.codeString()}, {color.codeString()})")
+    else:
+        color = getColorAt(loc)
+        print(f"{key_name} : ({loc.codeString()}, {color.codeString()})")
 
 
 def getColorSum(rect, i='default', debug=false, save=false):
@@ -117,31 +125,31 @@ def confirmColorSum(key):
     return getColorSum(rect_and_sum[0]) == rect_and_sum[1]
 
 
-def closeBluePrintIfNecessary():
-    color = getColorAt(Locs.blueprint_close)
-    if color == Colors.blueprint_close or color == Colors.blueprint_close_2:
-        slowClick(Locs.blueprint_close)
-        return true
-
-
-def closeIncidentIfNecessary():
-    if getColorAt(Locs.incident_ok) == Colors.incident_ok:
-        slowClick(Locs.incident_ok)
-        closeBluePrintIfNecessary()
-        return true
-
-
-def clickButton(key, attempts=2):
+def ensureButton(key, attempts=2, log=false):
     if attempts < 1: return false
-    loc = Colors.loc_to_color[key][0]
-    color = Colors.loc_to_color[key][1]
 
-    if getColorAt(loc) == color:
-        slowClick(loc)
+    loc_and_color = Colors.loc_and_color[key]
+    color = getColorAt(loc_and_color[0])
+    if color.isVeryClose(loc_and_color[1], true):
         return true
 
-    print("Missed button:", key, "-- attemptsLeft: ", attempts - 1)
+    if log:
+        Logging.warning(f"Missed button: {key} -- attemptsLeft: {attempts - 1} -- {color.toString()} : {loc_and_color[1].toString()}")
     if attempts > 1:
         wait(2)
-        return clickButton(key, attempts - 1)
+        return ensureButton(key, attempts - 1, log)
     return false
+
+
+def clickButton(key, attempts=2, log=false, picture=None):
+    if(ensureButton(key, attempts, log)):
+        if picture is not None:
+            saveFullScreenShotToFolder(picture)
+
+        slowClick(Colors.loc_and_color[key][0])
+        return true
+    return false
+
+
+def clickButtonIfNecessary(key, picture=None):
+    return clickButton(key, 1, false, picture)

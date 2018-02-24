@@ -21,10 +21,10 @@ class Locs:
     tavern_ok = Point(640, 900)
 
     # treasure_hunt_rect = Rect(3, 341, 54, 54)
-    treasure_hunt_rect = Rect(48, 451, 5, 11)
+    treasure_hunt_rect_3 = Rect(48, 451, 5, 11)
     treasure_hunt_rect_2 = Rect(48, 361, 5, 11)
     treasure_hunt_rect_1 = Rect(48, 271, 5, 11)
-    treasure_hunt = rectMiddle(treasure_hunt_rect)
+    treasure_hunt_rect = treasure_hunt_rect_3
     treasure_x_left_middle = Point(1133, 858)
     treasure_x = Rect(1133, 850, 17, 17)
     treasure_ok = Point(668, 735)

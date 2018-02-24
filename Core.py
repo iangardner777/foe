@@ -3,10 +3,9 @@ import win32api
 import win32con
 import win32gui
 
+from datetime import datetime
 from Locs import *
 
-true = True
-false = False
 nan = 'NaN'
 os_sep = "\\"
 
@@ -42,7 +41,7 @@ def wait(duration):
 
 
 ##### Ix #####
-def leftClick(point):
+def click(point):
     mousePos(point)
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0)
     wait(.05)
@@ -51,7 +50,7 @@ def leftClick(point):
 
 
 def slowClick(point, sec=2):
-    leftClick(point)
+    click(point)
     wait(sec)
 
 
@@ -60,7 +59,7 @@ def verySlowClick(point):
 
 
 def deadClick(sec=.1):
-    leftClick(Host.dead_click)
+    click(Host.dead_click)
     wait(sec)
 
 
@@ -142,3 +141,15 @@ def pointForRightOffset(point):
 
 def pointForScroll(point):
     return Point(point.x - Host.game_scroll.x, point.y - Host.game_scroll.y)
+
+
+##### Logging #####
+class Logging:
+    def log(text: str) -> None:
+        print(f"{Logging.time(true)}: {text}")
+
+    def warning(text: str) -> None:
+        print(f"---- {text}")
+
+    def time(self):
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')

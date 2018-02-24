@@ -21,50 +21,79 @@ def checkAid(check_taverns=false):
     #deadClick()
     for i in range(5):
         chair_rect = rectPlusX(Locs.chair_rect, i*Locs.friend_spacing)
-        doAid(chair_rect, i)
+        if not doAid(chair_rect, i):
+            return false
 
         if check_taverns:
             color_sum = getColorSum(chair_rect, i)
             if color_sum != Colors.chair_wait and color_sum != Colors.chair_blank:
                 if color_sum != Colors.chair_open:
-                    friend_rect = rectPlusX(Locs.friend_rect, i*Locs.friend_spacing)
-                    text = 'chair-' + str(i) + '-' + str(chair_rect) + '-' + str(color_sum)
-                    image_text = 'chair-' + str(i) + '-' + str(color_sum)
-                    saveScreenRect(friend_rect, 50, text, image_text, '', true)
-                slowClick(rectMiddle(chair_rect), 3)
+                    Logging.warning(f"Missed tavern chair: {i} - {color_sum}")
+                    saveImage(fullScreenShot(), "missed_tavern_chair")
+                    return false
+                    # friend_rect = rectPlusX(Locs.friend_rect, i*Locs.friend_spacing)
+                    # text = 'chair-' + str(i) + '-' + str(chair_rect) + '-' + str(color_sum)
+                    # image_text = 'chair-' + str(i) + '-' + str(color_sum)
+                    # saveScreenRect(friend_rect, 50, text, image_text, '', true)
+                slowClick(chair_rect.center(), 3)
                 deadClick(1)
+
+    return true
 
 
 def doAid(chair_rect, i, attempts=2):
     aid_point = Point(chair_rect.x, chair_rect.y + 30)
     aid_color = getColorAt(aid_point)
-    if aid_color == Colors.aid_wait: return
+    if aid_color.isClose(Colors.aid_wait): return true
 
-    if aid_color == Colors.aid_ready:
+    if aid_color.isClose(Colors.aid_ready):
         slowClick(aid_point)
         closeBluePrintIfNecessary()
-        return
+        return true
 
     if aid_color == Colors.aid_accept_friend:
         friend_rect = rectPlusX(Locs.friend_rect, i*Locs.friend_spacing)
         text = str('ADD friend') + '-' + str(i) + '-' + str(aid_point) + '-' + str(aid_color)
         image_text = 'addFriend-' + str(i)
         saveScreenRect(friend_rect, 50, text, image_text, 'Friends')
-        return
+        return true
+
+    Logging.warning(f"Missed aid: {i} - {aid_color} -- attemptsLeft: {attempts - 1}")
+    saveImage(fullScreenShot(), "missed_aid")
 
     if attempts > 1:
-        print("Missed aid: " + str(i) + '-' + str(aid_color) + " -- attemptsLeft: ", attempts - 1)
+        closeAnythingIfNecessary("aid")
         wait(2)
-        if closeIncidentIfNecessary():
-            print("Incident was up during aid.")
-        if closeBluePrintIfNecessary():
-            print("Blueprint was up during aid.")
-        doAid(chair_rect, i, attempts - 1)
+        return doAid(chair_rect, i, attempts - 1)
     else:
-        friend_rect = rectPlusX(Locs.friend_rect, i*Locs.friend_spacing)
-        text = 'aid color-' + str(i) + '-' + str(aid_point) + '-' + str(aid_color)
-        image_text = 'aid-' + str(i) + '-' + str(aid_color)
-        saveScreenRect(friend_rect, 50, text, image_text, '', true)
+        return false
+        # friend_rect = rectPlusX(Locs.friend_rect, i*Locs.friend_spacing)
+        # text = 'aid color-' + str(i) + '-' + str(aid_point) + '-' + str(aid_color)
+        # image_text = 'aid-' + str(i) + '-' + str(aid_color)
+        # saveScreenRect(friend_rect, 50, text, image_text, '', true)
+
+
+def closeIncidentIfNecessary():
+    if clickButtonIfNecessary(Colors.INCIDENT_OKAY):
+        closeBluePrintIfNecessary()
+        return true
+
+
+def closeBluePrintIfNecessary():
+    return clickButtonIfNecessary(Colors.BP_CLOSE)
+
+
+def closeGbRewardIfNecessary():
+    return clickButtonIfNecessary(Colors.GB_REWARD_OKAY, picture="GB_Rewards")
+
+
+def closeAnythingIfNecessary(event):
+    if closeIncidentIfNecessary():
+        Logging.warning(f"Incident was up during {event}.")
+    if closeBluePrintIfNecessary():
+        Logging.warning(f"Blueprint was up during {event}.")
+    if closeGbRewardIfNecessary():
+        Logging.warning(f"GB reward was up during {event}.")
 
 
 ##### Functions #####
@@ -83,8 +112,9 @@ def resizeChrome(click=true):
 
 
 def dragScreenSafe(offset):
+    closeAnythingIfNecessary("before drag screen")
     dragScreen(offset)
-    if closeIncidentIfNecessary():
+    if closeAnythingIfNecessary("after drag screen"):
         dragScreen(offset)
 
 
@@ -130,10 +160,16 @@ def checkTavern():
     if findTavern() != true: return
 
     verySlowClick(pointForScroll(Locs.tavern))
+    if not ensureButton(Colors.TAVERN_OKAY, 5, true):
+        Logging.warning("Couldn't find the tavern okay button")
+        deadClick(2)
+        return
+
     color = getColorAt(Locs.last_tavern_seat)
-    if color != Colors.last_tavern_seat and color != Colors.last_tavern_seat_2:
-        print("Tavern full, collecting.")
-        slowClick(Locs.tavern_collect)
+    if not color.isVeryClose(Colors.last_tavern_seat, true):
+        Logging.log("Tavern full, collecting.")
+        verySlowClick(Locs.tavern_collect)
+
     slowClick(Locs.tavern_ok)
 
 
@@ -165,7 +201,7 @@ def clickFriendsTab():
     if color in Colors.friends_tab_list:
         slowClick(Locs.friends_tab)
     else:
-        print("Friends tab not expanded: ", color)
+        Logging.warning(f"Friends tab not expanded: {color}")
         slowClick(Locs.friends_tab_collapsed)
 
     clickFriendsBack()
@@ -174,44 +210,62 @@ def clickFriendsTab():
 def checkTavernSeats(check_neighbors=true):
     clickFriendsTab()
     for i in range(29):
-        checkAid(true)
+        if not checkAid(true):
+            return false
         clickFriendsForward()
 
     clickGuildTab()
     for i in range(16):
-        checkAid()
+        if not checkAid():
+            return false
         clickFriendsForward()
 
     if check_neighbors:
         clickNeighborsTab()
         for i in range(20):
-            checkAid()
+            if not checkAid():
+                return false
             clickFriendsForward()
+
+    return true
 
 
 def checkTreasureHunt(always_check=false):
-    #close it if open
-    image = fullScreenShot()
-    offset = trackPixelHorizontal(Locs.treasure_x_left_middle, Colors.treasure_x_left_middle, image)
-    #deadClick didn't work here for Treasure Hunt
-    if offset != nan:
-        verySlowClick(Locs.treasure_x_left_middle)
-        # image = fullScreenShot()
+    # #close it if open
+    # image = fullScreenShot()
+    # offset = trackPixelHorizontal(Locs.treasure_x_left_middle, Colors.treasure_x_left_middle, image)
+    # #deadClick didn't work here for Treasure Hunt
+    # if offset != nan:
+    #     verySlowClick(Locs.treasure_x_left_middle)
+    #     # image = fullScreenShot()
+    #
+    # #check for treasure ready
+    # #offset = trackPixelVertical(Locs.treasure_x_left_middle, Colors.treasure_x_left_middle, image)
 
-    #check for treasure ready
-    #offset = trackPixelVertical(Locs.treasure_x_left_middle, Colors.treasure_x_left_middle, image)
-
+    loc = Locs.treasure_hunt_rect.center()
     if getColorSum(Locs.treasure_hunt_rect) == Colors.treasure_hunt_ready:
-        print("Found treasure!")
-    elif always_check == false:
+        Logging.log("Found treasure!")
+    elif getColorSum(Locs.treasure_hunt_rect_3) == Colors.treasure_hunt_ready:
+        loc = Locs.treasure_hunt_rect_3.center()
+        Logging.log("Found treasure!")
+        Logging.warning("At 3!")
+    elif getColorSum(Locs.treasure_hunt_rect_2) == Colors.treasure_hunt_ready:
+        loc = Locs.treasure_hunt_rect_2.center()
+        Logging.log("Found treasure!")
+        Logging.warning("At 2!")
+    elif getColorSum(Locs.treasure_hunt_rect_1) == Colors.treasure_hunt_ready:
+        loc = Locs.treasure_hunt_rect_1.center()
+        Logging.log("Found treasure!")
+        Logging.warning("At 1!")
+    elif not always_check:
         return
 
-    verySlowClick(Locs.treasure_hunt)
+    verySlowClick(loc)
     image = fullScreenShot()
 
     offset = trackPixelHorizontal(Locs.treasure_x_left_middle, Colors.treasure_x_left_middle, image)
     if offset == nan:
-        print("Couldn't find Treasure Hunt menu!")
+        Logging.warning("Couldn't find Treasure Hunt menu!")
         saveImage(image, 'no_treasure_hunt_menu')
         return
 
@@ -221,13 +275,13 @@ def checkTreasureHunt(always_check=false):
         point = pointForRightOffset(Locs.treasure_left_middle[i])
         #print(i, point, image.getpixel(point), Colors.treasure_complete_left_middle)
         if getColorAt(point, image) == Colors.treasure_complete_left_middle:
-            print("Collecting treasure: ", i + 1)
+            Logging.log(f"Collecting treasure: {i + 1}")
             verySlowClick(point)
             saveAndExitTreasure(i)
             return
 
     if always_check == false:
-        print("Couldn't find Collect button!")
+        Logging.warning("Couldn't find Collect button!")
         saveImage(image, "treasure_miss")
         for i in range(6):
             point = pointForRightOffset(Locs.treasure_left_middle[i])
@@ -238,10 +292,10 @@ def checkTreasureHunt(always_check=false):
 
 
 def saveAndExitTreasure(i):
-    saveImage(fullScreenShot(), "TreasureHunt" + os_sep + str(i + 1) + os_sep)
-    if closeIncidentIfNecessary() != true:
+    saveFullScreenShotToFolder("TreasureHunt", i + 1)
+    if not closeIncidentIfNecessary():
         wait(5)
-        saveImage(fullScreenShot(), "TreasureHunt" + os_sep + str(i + 1) + os_sep + "2nd")
+        saveFullScreenShotToFolder("TreasureHunt", i + 1, text="2nd")
         closeIncidentIfNecessary()
         #deadClick didn't work here for Treasure Hunt
     verySlowClick(Locs.treasure_x_left_middle)
@@ -250,7 +304,7 @@ def saveAndExitTreasure(i):
 def doStuff():
     resizeChrome()
     for i in range(100):
-        print('iteration: ', i)
+        Logging.log(f"iteration: {1}")
         checkTreasureHunt()
         checkTavern()
         checkTavernSeats()
@@ -262,13 +316,15 @@ def doStuff():
 
 def doStuff2(always_check_treasure=false, check_neighbors=true, start=true):
     for i in range(1000):
-        print('iteration: ', i)
+        Logging.log(f"iteration: {i}")
         if i != 0 or start:
             startGame()
             wait(30)
             deadClick()
             resizeChrome()
             deadClick(2)
+
+        closeAnythingIfNecessary("start")
 
         if i%10 == 0 and (i != 0 or always_check_treasure):
             runChecks(true, check_neighbors)
@@ -300,12 +356,21 @@ def startEvent():
 
 
 def main():
-    pass
-    # resizeChrome()
-    # doStuff2(start=false)
-    doStuff2()
-    # checkTreasureHunt()
+    alway_check_treasure = false
+    check_neighbors = true
+    start = true
+    # wait(1200)
+    doStuff2(alway_check_treasure, check_neighbors, start)
+    # checkTreasureHunt(true)
+    # checkTavern()
+    # checkTavernSeats()
 
 
 if __name__ == '__main__':
     main()
+
+
+# TODO - conditional start
+# TODO - picture of whole screen and close everything when failing aids
+# TODO - single picture of everything to do all aids on screen
+# TODO - Daddy's home
