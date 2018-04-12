@@ -10,6 +10,8 @@ class Locs:
     play_game = Point(987, 451)
     sineria_select = Point(670, 281)
 
+    accept_terms = Point(553, 444)
+
     winter_event_start = Point(683, 483)
     winter_event_top_left = Point(354, 573)
     winter_event_bottom_right = Point(1004, 892)
@@ -62,3 +64,8 @@ class Locs:
 
     friends_forward_button = Point(chair_rect.x + friend_spacing*5 + 35, chair_rect.y - 20)
     friends_back_button = Point(chair_rect.x - friend_spacing + 10, chair_rect.y + 10)
+
+    first_alchemist = Point(1977, 1110)
+    right_alchemist = Point(2072, 1065)
+    last_alchemist = Point(1606, 925)
+    rows_alchemist = 7

@@ -29,10 +29,17 @@ def saveFullScreenShotToFolder(folder, folder2=None, text=None):
 
 
 def saveImage(image, text, with_time=true):
-    name = os.getcwd() + os_sep + str(text)
-    if with_time: name += '__' + str(int(time.time()))
-    name += '.png'
-    image.save(name, 'PNG')
+    path = f"{os.getcwd()}{os_sep}{text}"
+    if with_time: path = f"{path}__{int(time.time())}"
+    path = f"{path}.png"
+    ensure_dir(path)
+    image.save(path, 'PNG')
+
+
+def ensure_dir(file_path):
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 
 def saveScreenRect(rect, expand, text, image_text, folder='', miss=false):
@@ -91,8 +98,8 @@ def getColorAt(loc, image=None):
 def saveLocToColor(key, loc=None):
     key_name = Colors.nameOf(key)
     if loc is None:
-        loc = mouseLoc()
-        mousePos(Host.dead_click)
+        loc = getMouseLoc(false)
+        setMouseLoc(Host.dead_click)
         wait(3)
         color = getColorAt(loc)
         print(f"{key_name} : ({loc.codeString()}, {color.codeString()})")
@@ -120,9 +127,20 @@ def saveColorSum(key):
     getColorSum(Colors.sums[key][0], key, false, true)
 
 
-def confirmColorSum(key):
-    rect_and_sum = Colors.sums[key]
-    return getColorSum(rect_and_sum[0]) == rect_and_sum[1]
+def confirmColorSum(key, printMiss=false):
+    rect_and_sums = Colors.sums[key]
+    sum = getColorSum(rect_and_sums[0])
+
+    values = ""
+    for i in range(1, len(rect_and_sums)):
+        if sum == rect_and_sums[i]:
+            return true
+        values = f"{values}{'' if i == 1 else ','}{rect_and_sums[i]}"
+
+    if printMiss:
+        Logging.warning(f"Color sum miss: {key} - {sum} - values:{values}")
+
+    return false
 
 
 def ensureButton(key, attempts=2, log=false):
@@ -153,3 +171,7 @@ def clickButton(key, attempts=2, log=false, picture=None):
 
 def clickButtonIfNecessary(key, picture=None):
     return clickButton(key, 1, false, picture)
+
+
+def checkForButton(key):
+    return ensureButton(key, 1)

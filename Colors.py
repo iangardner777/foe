@@ -49,18 +49,17 @@ class Colors:
         return Colors.NOT_NAMED
 
     TOP_LEFT = "top_left"
+    TOP_LEFT2 = "top_left2"
     TOP_LEFT_850 = "top_left_850_0"
     TOP_LEFT_900 = "top_left_900_0"
     TOP_LEFT_950 = "top_left_950_0"
     sums = {
-        TOP_LEFT    :(Rect(200, 200, 20, 20), 8778),
-        # TOP_LEFT : (Rect(100, 100, 20, 20), 18686),
-        TOP_LEFT_850:(Rect(200, 200, 20, 20), 7732),
-        # TOP_LEFT_850 : (Rect(100, 100, 20, 20), 11586),
-        TOP_LEFT_900:(Rect(200, 200, 20, 20), 11158),
-        # TOP_LEFT_900 : (Rect(100, 100, 20, 20), 12311),
-        TOP_LEFT_950:(Rect(200, 200, 20, 20), 4741)
-        # TOP_LEFT_950 : (Rect(100, 100, 20, 20), 8972)
+        TOP_LEFT    :(Rect(200, 200, 20, 20), 8955, 8165),
+        TOP_LEFT_850:(Rect(300, 200, 20, 20), 4534, 4606),
+        TOP_LEFT_900:(Rect(250, 200, 20, 20), 4534, 4606),
+        TOP_LEFT_950:(Rect(200, 200, 20, 20), 4534, 4606),
+
+        # "test":(Rect(1150, 200, 20, 20), 4606)
     }
 
     FRIEND_ACCEPT_OKAY = "friend_accept_ok"
@@ -68,12 +67,14 @@ class Colors:
     INCIDENT_OKAY = "incident_ok"
     BP_CLOSE = "bp_close"
     GB_REWARD_OKAY = "gb_reward_ok"
+    PLAY_NOW = "play_now"
     loc_and_color = {
         FRIEND_ACCEPT_OKAY:(Point(721, 720), Color(151, 83, 34)),
         TAVERN_OKAY:(Locs.tavern_ok, Color(152, 83, 34)),
         INCIDENT_OKAY:(Locs.incident_ok, Color(158, 89, 37)),
         BP_CLOSE:(Locs.blueprint_close, Color(122, 37, 25)),
         GB_REWARD_OKAY:(Point(622, 762), Color(151, 83, 34)),
+        PLAY_NOW:(Point(565, 534), Color(136, 28, 0))
     }
 
     last_tavern_seat = Color(37, 37, 41)
@@ -92,6 +93,7 @@ class Colors:
     friends_tab_list = [
         friends_tab,
         friends_tab_highlighted,
+        Color(140, 144, 144),
         Color(138, 141, 142),
         Color(113, 117, 122)
     ]

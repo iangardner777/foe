@@ -1,4 +1,5 @@
 from Vision import *
+from collect import *
 
 nan = 'NaN'
 
@@ -36,7 +37,7 @@ def checkAid(check_taverns=false):
                     # image_text = 'chair-' + str(i) + '-' + str(color_sum)
                     # saveScreenRect(friend_rect, 50, text, image_text, '', true)
                 slowClick(chair_rect.center(), 3)
-                deadClick(1)
+                deadClick2(1)
 
     return true
 
@@ -97,16 +98,24 @@ def closeAnythingIfNecessary(event):
 
 
 ##### Functions #####
+def checkForLogin():
+    if(checkForButton(Colors.PLAY_NOW)):
+        slowClick(Locs.accept_terms)
+        clickButton(Colors.PLAY_NOW)
+        wait(2)
+
+
 def startGame():
     verySlowClick(Locs.chrome_taskbar)
     resizeChrome()
-    slowClick(Locs.foe_shortcut, 20)
+    slowClick(Locs.foe_shortcut, 5)
+    checkForLogin()
     slowClick(Locs.play_game)
     slowClick(Locs.sineria_select)
 
 
 def resizeChrome(click=true):
-    if click: deadClick()
+    if click: deadClick2()
     hwnd = win32gui.GetForegroundWindow()
     resizeWindow(hwnd, Host.full_screen)
 
@@ -119,23 +128,25 @@ def dragScreenSafe(offset):
 
 
 def resetScreen():
-    for i in range(4):
-        if confirmColorSum(Colors.TOP_LEFT): return true
+    if confirmColorSum(Colors.TOP_LEFT): return true
+    attempts = 2
+    for i in range(attempts):
         dragScreenSafe(Size(1000, 1000))
-    print("Couldn't find top left of screen")
+        if confirmColorSum(Colors.TOP_LEFT, i == attempts - 1): return true
+    # print("Couldn't find top left of screen")
     saveImage(fullScreenShot(), "no_top_left")
     return false
 
 
 def setGameScroll():
-    if confirmColorSum(Colors.TOP_LEFT_850):
-        Host.game_scroll = Point(850, 0)
+    if confirmColorSum(Colors.TOP_LEFT_950):
+        Host.scroll_location = Point(950, 0)
         return true
     elif confirmColorSum(Colors.TOP_LEFT_900):
-        Host.game_scroll = Point(900, 0)
+        Host.scroll_location = Point(900, 0)
         return true
-    elif confirmColorSum(Colors.TOP_LEFT_950):
-        Host.game_scroll = Point(950, 0)
+    elif confirmColorSum(Colors.TOP_LEFT_850):
+        Host.scroll_location = Point(850, 0)
         return true
     return false
 
@@ -162,7 +173,7 @@ def checkTavern():
     verySlowClick(pointForScroll(Locs.tavern))
     if not ensureButton(Colors.TAVERN_OKAY, 5, true):
         Logging.warning("Couldn't find the tavern okay button")
-        deadClick(2)
+        deadClick2(2)
         return
 
     color = getColorAt(Locs.last_tavern_seat)
@@ -320,9 +331,9 @@ def doStuff2(always_check_treasure=false, check_neighbors=true, start=true):
         if i != 0 or start:
             startGame()
             wait(30)
-            deadClick()
+            deadClick2()
             resizeChrome()
-            deadClick(2)
+            deadClick2(2)
 
         closeAnythingIfNecessary("start")
 
@@ -336,7 +347,7 @@ def doStuff2(always_check_treasure=false, check_neighbors=true, start=true):
 
 
 def runChecks(always_check_treasure=false, check_neighbors=true):
-    deadClick()
+    deadClick2()
     resizeChrome()
     checkTreasureHunt(always_check_treasure)
     checkTavern()
@@ -356,14 +367,15 @@ def startEvent():
 
 
 def main():
+    pass
     alway_check_treasure = false
     check_neighbors = true
     start = true
     # wait(1200)
     doStuff2(alway_check_treasure, check_neighbors, start)
-    # checkTreasureHunt(true)
-    # checkTavern()
-    # checkTavernSeats()
+    #collectAlchemist()
+    #checkTreasureHunt()
+    # confirmColorSum("test", true)
 
 
 if __name__ == '__main__':

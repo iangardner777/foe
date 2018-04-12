@@ -13,15 +13,17 @@ os_sep = "\\"
 class Host:
     x = 0
     y = 110
+    loc = Point(x, y)
     width_pad = 14
     height_pad = 7
 
     right_offset = 0
-    game_scroll = Point(0, 0)
+    scroll_location = Point(0, 0)
 
     # full_screen = Rect(0, 0, 1364, 1245)
     full_screen = Rect(0, 0, 1375 - width_pad, 1254 - height_pad)
-    dead_click = Point(Locs.friends_forward_button.x + 30, full_screen.height - 10)
+    dead_click = Point(466, 13)
+    dead_click2 = Point(Locs.friends_forward_button.x + 30, full_screen.height - 10)
 
 
 def rectToScreen(rect):
@@ -42,7 +44,7 @@ def wait(duration):
 
 ##### Ix #####
 def click(point):
-    mousePos(point)
+    setMouseLoc(point)
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0)
     wait(.05)
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0)
@@ -63,6 +65,11 @@ def deadClick(sec=.1):
     wait(sec)
 
 
+def deadClick2(sec=.1):
+    click(Host.dead_click2)
+    wait(sec)
+
+
 def leftDown():
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0)
     wait(.01)
@@ -74,7 +81,7 @@ def leftUp():
 
 
 def drag(point_from, point_to):
-    mousePos(point_from)
+    setMouseLoc(point_from)
     leftDown()
     wait(.1)
 
@@ -84,7 +91,7 @@ def drag(point_from, point_to):
     point = point_from
     for i in range(iterations):
         point = Point(point.x + x_offset, point.y + y_offset)
-        mousePos(point)
+        setMouseLoc(point)
         wait(.1)
 
     wait(1)
@@ -93,36 +100,32 @@ def drag(point_from, point_to):
 
 
 def dragScreen(offset):
-    deadClick()
+    deadClick2()
     point = Point(1200 if (offset.width < 0) else 200, 1200 if (offset.height < 0) else 200)
     finish_point = Point(point.x + offset.width, point.y + offset.height)
     drag(point, finish_point)
 
 
-def mousePos(point):
+def setMouseLoc(point):
     win32api.SetCursorPos((int(Host.x + point.x), int(Host.y + point.y)))
 
 
-def setMousePos(point):
-    win32api.SetCursorPos((int(Host.x + point.x), int(Host.y + point.y)))
-
-
-def getMouseLoc(p=true):
+def getMouseLoc(p=true, include_scroll=false):
     x, y = win32api.GetCursorPos()
-    x = x - Host.x
-    y = y - Host.y
-    if p: print("(" + str(x) + ", " + str(y) + ")")
-    return Point(x, y)
+    # x = x - Host.x
+    # y = y - Host.y
+
+    point = Point(x, y) - Host.loc
+    if(include_scroll): point += Host.scroll_location
+
+    if p: print(point.codeString())
+    return point
 
 
 def getMouseLocFast():
     for i in range(100):
         getMouseLoc()
         wait(.1)
-
-
-def mouseLoc():
-    return getMouseLoc(false)
 
 
 def getRect(p=true):
@@ -140,7 +143,7 @@ def pointForRightOffset(point):
 
 
 def pointForScroll(point):
-    return Point(point.x - Host.game_scroll.x, point.y - Host.game_scroll.y)
+    return point - Host.scroll_location
 
 
 ##### Logging #####
