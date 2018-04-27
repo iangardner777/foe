@@ -58,6 +58,9 @@ class Locs:
     chair_size = Size(21, 21)
     friend_spacing = 107
     friend_rect = Rect(264, 1120, 98, 119)
+    friend_name_rect = friend_rect
+    friend_name_rect.height = 16
+    friend_tavern_name_rect = Rect(460, 388, 442, 28)
 
     blueprint_close = Point(720, 832)
     incident_ok = Point(636, 732)

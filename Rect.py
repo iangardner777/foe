@@ -62,6 +62,9 @@ class Rect:
     def size(self):
         return Size(self.width, self.height)
 
+    def withSize(self, size):
+        return Rect(self.x, self.y, size.width, size.height)
+
     def center(self):
         return Point(self.x + self.width/2, self.y + self.height/2)
 

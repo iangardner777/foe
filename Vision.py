@@ -2,46 +2,14 @@ from Core import *
 from Colors import *
 
 import os
-from PIL import ImageGrab, ImageOps
+from PIL import ImageOps
 from numpy import *
+from pytesseract import *
 
 nan = 'NaN'
 
 
 ##### Computer Vision #####
-def screenShot(rect):
-    return ImageGrab.grab(rectToScreen(rect).toTuple())
-
-
-def fullScreenShot():
-    return screenShot(Host.full_screen)
-
-
-def saveFullScreenShot(text):
-    saveImage(fullScreenShot(), text)
-
-
-def saveFullScreenShotToFolder(folder, folder2=None, text=None):
-    name = f"{folder}{os_sep}" if folder2 is None else f"{folder}{os_sep}{folder2}{os_sep}"
-    if text is not None:
-        name += text
-    saveImage(fullScreenShot(), name)
-
-
-def saveImage(image, text, with_time=true):
-    path = f"{os.getcwd()}{os_sep}{text}"
-    if with_time: path = f"{path}__{int(time.time())}"
-    path = f"{path}.png"
-    ensure_dir(path)
-    image.save(path, 'PNG')
-
-
-def ensure_dir(file_path):
-    directory = os.path.dirname(file_path)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-
 def saveScreenRect(rect, expand, text, image_text, folder='', miss=false):
     if miss:
         text = 'MISS! ' + text
@@ -175,3 +143,17 @@ def clickButtonIfNecessary(key, picture=None):
 
 def checkForButton(key):
     return ensureButton(key, 1)
+
+
+char_whitelist = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+def readText(rect):
+    image = screenShot(rect)
+
+    #gray_image = ImageOps.grayscale(image)
+    #sum = array(gray_image.getcolors()).sum()
+    #saveImage(image, 'test')
+    #print(f"{sum}: {image_to_string(gray_image)} -- {image_to_string(image)}")
+
+    #return image_to_string(image, config='-oem 0 -psm 7 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyz')
+    return image_to_string(image, config=' -psm 7 foe_tavern_names')
+    #return image_to_string(image, "eng", f"-psm 7 -c tessedit_char_whitelist={char_whitelist}")

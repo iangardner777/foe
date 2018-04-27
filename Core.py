@@ -1,3 +1,5 @@
+import os
+import re
 import time
 import win32api
 import win32con
@@ -5,6 +7,7 @@ import win32gui
 
 from datetime import datetime
 from Locs import *
+from PIL import ImageGrab
 
 nan = 'NaN'
 os_sep = "\\"
@@ -134,7 +137,7 @@ def getRect(p=true):
     wait(5)
     bottom_right = getMouseLoc()
     rect = pointsToRect(top_left, bottom_right)
-    if p: print('(' + str(rect.x) + ', ' + str(rect.y) + ', ' + str(rect.width) + ', ' + str(rect.height))
+    if p: print(rect.codeString())
     return rect
 
 
@@ -145,6 +148,44 @@ def pointForRightOffset(point):
 def pointForScroll(point):
     return point - Host.scroll_location
 
+##### File System #####
+def ensure_dir(file_path):
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+
+def clean_filename(name):
+    return re.sub(r'[/\\:*?"<>|]', '', name)
+
+
+##### Screenshots #####
+def screenShot(rect):
+    return ImageGrab.grab(rectToScreen(rect).toTuple())
+
+
+def fullScreenShot():
+    return screenShot(Host.full_screen)
+
+
+def saveFullScreenShot(text):
+    saveImage(fullScreenShot(), text)
+
+
+def saveFullScreenShotToFolder(folder, folder2=None, text=None):
+    name = f"{folder}{os_sep}" if folder2 is None else f"{folder}{os_sep}{folder2}{os_sep}"
+    if text is not None:
+        name += text
+    saveImage(fullScreenShot(), name)
+
+
+def saveImage(image, text, with_time=true):
+    path = f"{os.getcwd()}{os_sep}{text}"
+    if with_time: path = f"{path}__{int(time.time())}"
+    path = f"{path}.png"
+    ensure_dir(path)
+    image.save(path, 'PNG')
+
 
 ##### Logging #####
 class Logging:
@@ -153,6 +194,12 @@ class Logging:
 
     def warning(text: str) -> None:
         print(f"---- {text}")
+
+    def error(text: str, imageText: str) -> None:
+        print(f"#### {text}")
+        if not imageText:
+            imageText = text
+        saveImage(fullScreenShot(), imageText)
 
     def time(self):
         return datetime.now().strftime('%Y-%m-%d %H:%M:%S')

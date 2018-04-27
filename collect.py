@@ -12,3 +12,8 @@ def collectAlchemist():
         row_loc = Locs.first_alchemist + alchemist_row_offset*i
         slowClick(pointForScroll(row_loc))
         slowClick(pointForScroll(row_loc) + alchemist_column_offset)
+
+def collectBlacksmith():
+    slowClick(pointForScroll(Point(1384, 1013)))
+    slowClick(pointForScroll(Point(1384, 1013)))
+    slowClick(Point(444, 533))

@@ -54,16 +54,17 @@ class Colors:
     TOP_LEFT_900 = "top_left_900_0"
     TOP_LEFT_950 = "top_left_950_0"
     sums = {
-        TOP_LEFT    :(Rect(200, 200, 20, 20), 8955, 8165),
-        TOP_LEFT_850:(Rect(300, 200, 20, 20), 4534, 4606),
-        TOP_LEFT_900:(Rect(250, 200, 20, 20), 4534, 4606),
-        TOP_LEFT_950:(Rect(200, 200, 20, 20), 4534, 4606),
+        TOP_LEFT    :(Rect(200, 200, 20, 20), 8764, 8955, 8165),
+        TOP_LEFT_850:(Rect(300, 200, 20, 20), 4741, 4534, 4606),
+        TOP_LEFT_900:(Rect(250, 200, 20, 20), 4741, 4534, 4606),
+        TOP_LEFT_950:(Rect(200, 200, 20, 20), 4741, 4534, 4606),
 
         # "test":(Rect(1150, 200, 20, 20), 4606)
     }
 
     FRIEND_ACCEPT_OKAY = "friend_accept_ok"
     TAVERN_OKAY = "tavern_ok"
+    FRIENDS_TAVERN_CLOSE = "friends_tavern_close"
     INCIDENT_OKAY = "incident_ok"
     BP_CLOSE = "bp_close"
     GB_REWARD_OKAY = "gb_reward_ok"
@@ -71,6 +72,7 @@ class Colors:
     loc_and_color = {
         FRIEND_ACCEPT_OKAY:(Point(721, 720), Color(151, 83, 34)),
         TAVERN_OKAY:(Locs.tavern_ok, Color(152, 83, 34)),
+        FRIENDS_TAVERN_CLOSE:(Point(731, 893), Color(129, 40, 28)),
         INCIDENT_OKAY:(Locs.incident_ok, Color(158, 89, 37)),
         BP_CLOSE:(Locs.blueprint_close, Color(122, 37, 25)),
         GB_REWARD_OKAY:(Point(622, 762), Color(151, 83, 34)),
