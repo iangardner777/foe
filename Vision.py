@@ -145,6 +145,10 @@ def checkForButton(key):
     return ensureButton(key, 1)
 
 
+def checkForColor(key):
+    return ensureButton(key, 1)
+
+
 char_whitelist = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 def readText(rect):
     image = screenShot(rect)

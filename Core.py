@@ -12,6 +12,11 @@ from PIL import ImageGrab
 nan = 'NaN'
 os_sep = "\\"
 
+NORMAL = 0
+FAIL = -1
+USER_HOME = 2
+INVALID_LOC = Point(-10000, -10000)
+
 
 class Host:
     x = 0
@@ -22,11 +27,19 @@ class Host:
 
     right_offset = 0
     scroll_location = Point(0, 0)
+    last_mouse_loc = INVALID_LOC
 
     # full_screen = Rect(0, 0, 1364, 1245)
     full_screen = Rect(0, 0, 1375 - width_pad, 1254 - height_pad)
     dead_click = Point(466, 13)
     dead_click2 = Point(Locs.friends_forward_button.x + 30, full_screen.height - 10)
+
+    @staticmethod
+    def checkStatus():
+        loc = getMouseLoc(false)
+        if Host.last_mouse_loc != INVALID_LOC and loc != Host.last_mouse_loc:
+            return USER_HOME
+        return NORMAL
 
 
 def rectToScreen(rect):
@@ -111,6 +124,7 @@ def dragScreen(offset):
 
 def setMouseLoc(point):
     win32api.SetCursorPos((int(Host.x + point.x), int(Host.y + point.y)))
+    Host.last_mouse_loc = point
 
 
 def getMouseLoc(p=true, include_scroll=false):

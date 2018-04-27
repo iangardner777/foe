@@ -3,7 +3,6 @@ from collect import *
 
 nan = 'NaN'
 
-
 def co(i):
     chair_rect = rectPlusX(Locs.chair_rect, i*Locs.friend_spacing)
     aid_point = Point(chair_rect.x, chair_rect.y + 30)
@@ -54,7 +53,7 @@ def checkAid(check_taverns=false):
                     # text = 'chair-' + str(i) + '-' + str(chair_rect) + '-' + str(color_sum)
                     # image_text = 'chair-' + str(i) + '-' + str(color_sum)
                     # saveScreenRect(friend_rect, 50, text, image_text, '', true)
-                slowClick(chair_rect.center(), 3)
+                slowClick(chair_rect.center())
 
                 if not ensureFriendsTavernClose():
                     Logging.error("Couldn't find friend tavern close", "friend_tavern_close")
@@ -65,8 +64,13 @@ def checkAid(check_taverns=false):
                 if friend in FRIEND_TO_VISITS:
                     FRIEND_TO_VISITS[friend] += 1
                 else:
-                    Logging.warning(f"Friend: {friend} was not in the visits dictionary!")
-                    FRIEND_TO_VISITS[friend] = 1
+                    wait(5)
+                    friend = readText(Locs.friend_tavern_name_rect)
+                    if friend in FRIEND_TO_VISITS:
+                        FRIEND_TO_VISITS[friend] += 1
+                    else:
+                        Logging.warning(f"Friend: {friend} was not in the visits dictionary!")
+                        FRIEND_TO_VISITS[friend] = 1
 
                 saveTavernVisits()
                 saveImage(fullScreenShot(), f"TavernVisits{os_sep}{clean_filename(friend)}")
@@ -277,12 +281,14 @@ def checkFriendsAidTaverns(check_neighbors=true):
     loadTavernVisits()
     clickFriendsTab()
     for i in range(29):
+        checkStatus()
         if not checkAid(true):
             return false
         clickFriendsForward()
 
     clickGuildTab()
     for i in range(16):
+        checkStatus()
         if not checkAid():
             return false
         clickFriendsForward()
@@ -290,6 +296,7 @@ def checkFriendsAidTaverns(check_neighbors=true):
     if check_neighbors:
         clickNeighborsTab()
         for i in range(20):
+            checkStatus()
             if not checkAid():
                 return false
             clickFriendsForward()
@@ -368,17 +375,44 @@ def saveAndExitTreasure(i):
     verySlowClick(Locs.treasure_x_left_middle)
 
 
+status = NORMAL
+wait_time = 0
+def checkStatus(do_wait = true):
+    global status, wait_time
+
+    status = Host.checkStatus()
+    if do_wait:
+        while status == USER_HOME:
+            wait_time += 60
+            Logging.warning(f"User is home. Waiting: {wait_time}")
+            wait(wait_time)
+            checkStatus()
+
+        wait_time = 0
+
+
 def doStuff2(check_neighbors=true, start=true):
     for i in range(1000):
         Logging.log(f"iteration: {i}")
-        if i != 0 or start:
+
+        setMouseLoc(Host.dead_click)
+        checkStatus()
+
+        if checkForColor(Colors.DEAD_CLICK):
+            Logging.warning("Game was already started.")
+        else:
             startGame()
 
+        checkStatus()
         closeAnythingIfNecessary("start")
 
         runChecks(check_neighbors)
 
-        slowClick(Locs.chrome_close)
+        if checkStatus(false) == USER_HOME:
+            Logging.warning(f"User is home. Not closing.")
+        else:
+            slowClick(Locs.chrome_close)
+
         wait(1200)
 
         #wait(250)
@@ -388,10 +422,12 @@ def doStuff2(check_neighbors=true, start=true):
         #slowClick(Locs.chrome_close)
 
 
-
 def runChecks(check_neighbors=true):
-    deadClick2()
+    checkStatus()
+    deadClick()
+    checkStatus()
     resizeChrome()
+    checkStatus()
     checkTavern()
     checkFriendsAidTaverns(check_neighbors)
 
@@ -443,9 +479,8 @@ def setupTavernSeats():
 def main():
     pass
     check_neighbors = true
-    start = true
     # wait(1200)
-    doStuff2(check_neighbors, start)
+    doStuff2(check_neighbors)
     #collectAlchemist()
     #setupTavernSeats()
     #saveLocToColor(Colors.FRIENDS_TAVERN_CLOSE)
@@ -456,7 +491,5 @@ if __name__ == '__main__':
     main()
 
 
-# TODO - conditional start
 # TODO - picture of whole screen and close everything when failing aids
 # TODO - single picture of everything to do all aids on screen
-# TODO - Daddy's home

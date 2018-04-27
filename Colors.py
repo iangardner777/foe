@@ -62,6 +62,7 @@ class Colors:
         # "test":(Rect(1150, 200, 20, 20), 4606)
     }
 
+    DEAD_CLICK = "dead_click"
     FRIEND_ACCEPT_OKAY = "friend_accept_ok"
     TAVERN_OKAY = "tavern_ok"
     FRIENDS_TAVERN_CLOSE = "friends_tavern_close"
@@ -70,6 +71,7 @@ class Colors:
     GB_REWARD_OKAY = "gb_reward_ok"
     PLAY_NOW = "play_now"
     loc_and_color = {
+        DEAD_CLICK:(Host.dead_click, Color(84, 56, 31)),
         FRIEND_ACCEPT_OKAY:(Point(721, 720), Color(151, 83, 34)),
         TAVERN_OKAY:(Locs.tavern_ok, Color(152, 83, 34)),
         FRIENDS_TAVERN_CLOSE:(Point(731, 893), Color(129, 40, 28)),
