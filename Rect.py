@@ -1,5 +1,7 @@
 true = True
 false = False
+one_hour_time = 3600
+one_minute_time = 60
 
 class Point:
     def __init__(self, x, y):
@@ -8,6 +10,9 @@ class Point:
 
     def toTuple(self):
         return self.x, self.y
+
+    def toIntTuple(self):
+        return int(self.x), int(self.y)
 
     def __add__(self, other):
         return Point(self.x + other.x, self.y + other.y)

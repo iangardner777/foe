@@ -11,6 +11,7 @@ class Locs:
     sineria_select = Point(670, 281)
 
     accept_terms = Point(553, 444)
+    #accept_terms2 = Point(549, 442)
 
     winter_event_start = Point(683, 483)
     winter_event_top_left = Point(354, 573)

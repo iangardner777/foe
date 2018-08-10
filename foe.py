@@ -42,60 +42,32 @@ def checkAid(check_taverns=false):
         if not doAid(chair_rect, i):
             return false
 
-        if check_taverns:
-            color_sum = getColorSum(chair_rect, i)
-            if color_sum != Colors.chair_wait and color_sum != Colors.chair_blank:
-                if color_sum != Colors.chair_open:
-                    Logging.warning(f"Missed tavern chair: {i} - {color_sum}")
-                    saveImage(fullScreenShot(), "missed_tavern_chair")
-                    return false
-                    # friend_rect = rectPlusX(Locs.friend_rect, i*Locs.friend_spacing)
-                    # text = 'chair-' + str(i) + '-' + str(chair_rect) + '-' + str(color_sum)
-                    # image_text = 'chair-' + str(i) + '-' + str(color_sum)
-                    # saveScreenRect(friend_rect, 50, text, image_text, '', true)
-                slowClick(chair_rect.center())
-
-                if not ensureFriendsTavernClose():
-                    Logging.error("Couldn't find friend tavern close", "friend_tavern_close")
-                    deadClick(1)
-                    return false
-
-                friend = readText(Locs.friend_tavern_name_rect)
-                if friend in FRIEND_TO_VISITS:
-                    FRIEND_TO_VISITS[friend] += 1
-                else:
-                    wait(5)
-                    friend = readText(Locs.friend_tavern_name_rect)
-                    if friend in FRIEND_TO_VISITS:
-                        FRIEND_TO_VISITS[friend] += 1
-                    else:
-                        Logging.warning(f"Friend: {friend} was not in the visits dictionary!")
-                        FRIEND_TO_VISITS[friend] = 1
-
-                saveTavernVisits()
-                saveImage(fullScreenShot(), f"TavernVisits{os_sep}{clean_filename(friend)}")
-
-                deadClick(1)
+        if check_taverns and not doTavern(chair_rect, i):
+            return false
 
     return true
 
 
 def doAid(chair_rect, i, attempts=2):
+    checkStatus()
     aid_point = Point(chair_rect.x, chair_rect.y + 30)
     aid_color = getColorAt(aid_point)
     if aid_color.isClose(Colors.aid_wait): return true
 
     if aid_color.isClose(Colors.aid_ready):
         slowClick(aid_point)
-        setMouseLoc(Host.dead_click) #prevent popup from building under friends bar interfering
         closeBluePrintIfNecessary()
+        #DOESNT WORK-prevent popup from building under friends bar interfering
+        #for i in range(5):
+        #    aid_point -= Point(1, 1)
+        #    setMouseLoc(aid_point)
         return true
 
     if aid_color == Colors.aid_accept_friend:
-        friend_rect = rectPlusX(Locs.friend_rect, i*Locs.friend_spacing)
-        text = str('ADD friend') + '-' + str(i) + '-' + str(aid_point) + '-' + str(aid_color)
-        image_text = 'addFriend-' + str(i)
-        saveScreenRect(friend_rect, 50, text, image_text, 'Friends')
+        #friend_rect = rectPlusX(Locs.friend_rect, i*Locs.friend_spacing)
+        #text = str('ADD friend') + '-' + str(i) + '-' + str(aid_point) + '-' + str(aid_color)
+        #image_text = 'addFriend-' + str(i)
+        #saveScreenRect(friend_rect, 50, text, image_text, 'Friends')
         return true
 
     Logging.warning(f"Missed aid: {i} - {aid_color} -- attemptsLeft: {attempts - 1}")
@@ -105,12 +77,65 @@ def doAid(chair_rect, i, attempts=2):
         closeAnythingIfNecessary("aid")
         wait(2)
         return doAid(chair_rect, i, attempts - 1)
-    else:
-        return false
-        # friend_rect = rectPlusX(Locs.friend_rect, i*Locs.friend_spacing)
-        # text = 'aid color-' + str(i) + '-' + str(aid_point) + '-' + str(aid_color)
-        # image_text = 'aid-' + str(i) + '-' + str(aid_color)
-        # saveScreenRect(friend_rect, 50, text, image_text, '', true)
+
+    return false
+    # friend_rect = rectPlusX(Locs.friend_rect, i*Locs.friend_spacing)
+    # text = 'aid color-' + str(i) + '-' + str(aid_point) + '-' + str(aid_color)
+    # image_text = 'aid-' + str(i) + '-' + str(aid_color)
+    # saveScreenRect(friend_rect, 50, text, image_text, '', true)
+
+
+def doTavern(chair_rect, i, attempts=2):
+    checkStatus()
+    color_sum = getColorSum(chair_rect, i)
+    if color_sum == Colors.chair_wait or color_sum == Colors.chair_blank:
+        return true
+
+    if color_sum == Colors.chair_open:
+        slowClick(chair_rect.center())
+
+        if not ensureFriendsTavernClose():
+            Logging.error("Couldn't find friend tavern close", "friend_tavern_close")
+            deadClick(1)
+            return false
+
+        friend = readText(Locs.friend_tavern_name_rect)
+        if friend in FRIEND_TO_VISITS:
+            FRIEND_TO_VISITS[friend] += 1
+        else:
+            wait(5)
+            friend = readText(Locs.friend_tavern_name_rect)
+            if friend in FRIEND_TO_VISITS:
+                FRIEND_TO_VISITS[friend] += 1
+            else:
+                Logging.warning(f"Friend: {friend} was not in the visits dictionary!")
+                FRIEND_TO_VISITS[friend] = 1
+
+        saveTavernVisits()
+        saveImage(fullScreenShot(), f"TavernVisits{os_sep}{clean_filename(friend)}")
+
+        deadClick(1)
+        return true
+
+    if attempts > 1:
+        Logging.warning(f"Missed tavern chair: {i} - {color_sum}")
+        closeAnythingIfNecessary("tavern")
+        wait(2)
+        loc = getMouseLoc(false)
+        for i in range(50):
+            loc -= Point(1, 1)
+            setMouseLoc(loc)
+            wait(.01)
+        deadClick(.5)
+        return doAid(chair_rect, i, attempts - 1)
+
+    Logging.warning(f"LAST -- Missed tavern chair: {i} - {color_sum}")
+    saveImage(fullScreenShot(), "missed_tavern_chair")
+    return false
+    # friend_rect = rectPlusX(Locs.friend_rect, i*Locs.friend_spacing)
+    # text = 'chair-' + str(i) + '-' + str(chair_rect) + '-' + str(color_sum)
+    # image_text = 'chair-' + str(i) + '-' + str(color_sum)
+    # saveScreenRect(friend_rect, 50, text, image_text, '', true)
 
 
 def closeIncidentIfNecessary():
@@ -124,7 +149,10 @@ def closeBluePrintIfNecessary():
 
 
 def closeGbRewardIfNecessary():
-    return clickButtonIfNecessary(Colors.GB_REWARD_OKAY, picture="GB_Rewards")
+    clicked = clickButtonIfNecessary(Colors.GB_REWARD_OKAY, picture="GB_Rewards")
+    if clicked:
+        Logging.log("Collected GB.")
+    return clicked
 
 
 def closeAnythingIfNecessary(event):
@@ -138,28 +166,43 @@ def closeAnythingIfNecessary(event):
 
 ##### Functions #####
 def checkForLogin():
-    if(checkForButton(Colors.PLAY_NOW)):
-        slowClick(Locs.accept_terms)
+    if(checkForButton(Colors.PLAY_NOW, true)):
+        slowClick(Locs.accept_terms, 5)
         clickButton(Colors.PLAY_NOW)
+        wait(2)
+    elif(checkForButton(Colors.PLAY_NOW2, true)):
+        slowClick(Locs.accept_terms, 5)
+        clickButton(Colors.PLAY_NOW2)
         wait(2)
 
 
 def startGame():
-    verySlowClick(Locs.chrome_taskbar)
-    resizeChrome()
-    slowClick(Locs.foe_shortcut, 5)
-    checkForLogin()
-    slowClick(Locs.play_game)
-    slowClick(Locs.sineria_select)
+    if checkForColor(Colors.DEAD_CLICK):
+        Logging.warning("Game was already started.")
+    else:
+        verySlowClick(Locs.chrome_taskbar)
+        resizeChrome()
+        slowClick(Locs.foe_shortcut, 5)
+        checkForLogin()
+        slowClick(Locs.play_game)
+        slowClick(Locs.sineria_select)
+        wait(30)
 
-    wait(30)
+    closeAnythingIfNecessary("start")
+    checkStatus()
     deadClick()
     resizeChrome()
     deadClick(2)
+    if(clickButton(Colors.GUILD_EXPEDITION)):
+        wait(2)
+        deadClick(2)
+        clickButton(Colors.BACK_TO_CITY)
+        wait(2)
     closeAnythingIfNecessary("start")
 
 
 def resizeChrome(click=true):
+    checkStatus()
     if click: deadClick()
     hwnd = win32gui.GetForegroundWindow()
     resizeWindow(hwnd, Host.full_screen)
@@ -375,51 +418,57 @@ def saveAndExitTreasure(i):
     verySlowClick(Locs.treasure_x_left_middle)
 
 
-status = NORMAL
-wait_time = 0
-def checkStatus(do_wait = true):
-    global status, wait_time
-
-    status = Host.checkStatus()
-    if do_wait:
-        while status == USER_HOME:
-            wait_time += 60
-            Logging.warning(f"User is home. Waiting: {wait_time}")
-            wait(wait_time)
-            checkStatus()
-
-        wait_time = 0
-
-
-def doStuff2(check_neighbors=true, start=true):
+def doStuff2(check_neighbors=true, b=(false, -1, true), do_quests=false, run_checks=true):
     for i in range(1000):
         Logging.log(f"iteration: {i}")
 
-        setMouseLoc(Host.dead_click)
         checkStatus()
+        startGame()
 
-        if checkForColor(Colors.DEAD_CLICK):
-            Logging.warning("Game was already started.")
-        else:
-            startGame()
+        #collectB()
+        #deadClick(2)
 
         checkStatus()
         closeAnythingIfNecessary("start")
 
-        runChecks(check_neighbors)
+        if run_checks:
+            runChecks(check_neighbors)
+
+        collectB(b)
 
         if checkStatus(false) == USER_HOME:
             Logging.warning(f"User is home. Not closing.")
-        else:
+        elif not do_quests:
             slowClick(Locs.chrome_close)
 
-        wait(1200)
+        if b[0] and b[1] == 0:
+            for i in range(12):
+                wait(one_hour_time/12 - one_minute_time)
+                collectB(b, true, true)
+            wait(one_hour_time/12 - one_minute_time*3)
+        elif b[0] and b[1] == 1:
+            for i in range(4):
+                wait(one_hour_time/4 - one_minute_time)
+                collectB(b, true, true)
+            wait(one_hour_time/4 - one_minute_time*3)
+        elif do_quests:
+            loop_ub_quests(100)
+        else:
+            wait(one_hour_time)
 
-        #wait(250)
-        #startGame()
-        #findTavern()
-        #collectBlacksmith()
-        #slowClick(Locs.chrome_close)
+
+def collectB(b, start=false, close=false):
+    if not b[0]:
+        return
+
+    if start:
+        startGame()
+
+    findTavern()
+    collectBlacksmith(b[1], b[2])
+
+    if close:
+        slowClick(Locs.chrome_close)
 
 
 def runChecks(check_neighbors=true):
@@ -471,6 +520,7 @@ def setupTavernSeats():
         clickFriendsForward()
     file.close()
 
+
     file = open(MISSING_FRIENDS_PATH, "a+")
     for friend, visits in FRIEND_TO_VISITS.items():
         Logging.warning(f"{friend} was in dict with {visits} visits, but wasn't found in friend list.")
@@ -478,9 +528,13 @@ def setupTavernSeats():
 
 def main():
     pass
+
     check_neighbors = true
+    b = (false, 2, true)
+    do_quests = false
+    run_checks = true
     # wait(1200)
-    doStuff2(check_neighbors)
+    doStuff2(check_neighbors, b, do_quests, run_checks)
     #collectAlchemist()
     #setupTavernSeats()
     #saveLocToColor(Colors.FRIENDS_TAVERN_CLOSE)
@@ -493,3 +547,4 @@ if __name__ == '__main__':
 
 # TODO - picture of whole screen and close everything when failing aids
 # TODO - single picture of everything to do all aids on screen
+# TODO - read params from a file so you don't have to restart

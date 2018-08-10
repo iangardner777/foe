@@ -111,13 +111,26 @@ def confirmColorSum(key, printMiss=false):
     return false
 
 
-def ensureButton(key, attempts=2, log=false):
+def ensureButton(key, attempts=2, log=false, search=false):
     if attempts < 1: return false
 
     loc_and_color = Colors.loc_and_color[key]
-    color = getColorAt(loc_and_color[0])
-    if color.isVeryClose(loc_and_color[1], true):
+    loc = loc_and_color[0]
+    color = loc_and_color[1]
+    #image = screenShot(Rect(loc.x, loc.y, 1, 1))
+    image = fullScreenShot()
+    screen_color = getColorAt(loc, image)
+    #if screen_color.isVeryClose(color, true):
+    if screen_color.isClose(color):
         return true
+
+    if search:
+        loc.y -= 20
+        for i in range(40):
+            screen_color = getColorAt(loc, image)
+            if screen_color.isVeryClose(color, true):
+                return true
+            loc.y += 1
 
     if log:
         Logging.warning(f"Missed button: {key} -- attemptsLeft: {attempts - 1} -- {color.toString()} : {loc_and_color[1].toString()}")
@@ -127,8 +140,8 @@ def ensureButton(key, attempts=2, log=false):
     return false
 
 
-def clickButton(key, attempts=2, log=false, picture=None):
-    if(ensureButton(key, attempts, log)):
+def clickButton(key, attempts=2, log=false, picture=None, search=false):
+    if ensureButton(key, attempts, log, search):
         if picture is not None:
             saveFullScreenShotToFolder(picture)
 
@@ -141,8 +154,8 @@ def clickButtonIfNecessary(key, picture=None):
     return clickButton(key, 1, false, picture)
 
 
-def checkForButton(key):
-    return ensureButton(key, 1)
+def checkForButton(key, search):
+    return ensureButton(key, 1, false, search)
 
 
 def checkForColor(key):

@@ -38,8 +38,38 @@ class Host:
     def checkStatus():
         loc = getMouseLoc(false)
         if Host.last_mouse_loc != INVALID_LOC and loc != Host.last_mouse_loc:
+            return NORMAL
+            Logging.warning(f"User is home. loc: {loc} -- last loc: {Host.last_mouse_loc}")
+            Host.last_mouse_loc = loc
             return USER_HOME
         return NORMAL
+
+
+status = NORMAL
+wait_time = 0
+def checkStatus(do_wait = true):
+    global status, wait_time
+
+    status = Host.checkStatus()
+    if do_wait:
+        while status == USER_HOME:
+            wait_time += 60
+            Logging.warning(f"User is home. Waiting: {wait_time}")
+
+            wait_increment = 2
+            for i in range(int(wait_time/wait_increment)):
+                wait(wait_increment)
+                current_mouse_loc = getMouseLoc(false)
+                if abs(current_mouse_loc.x - Host.dead_click.x) < 50 and abs(current_mouse_loc.y - Host.dead_click.y) < 10:
+                    #print(current_mouse_loc.x - Host.dead_click.x, current_mouse_loc.y - Host.dead_click.y)
+                    if checkStatus(false) != USER_HOME:
+                        Logging.warning(f"Resuming. Cursor {current_mouse_loc} is near dead zone {Host.dead_click}")
+                        deadClick()
+                        break
+            checkStatus()
+
+        wait_time = 0
+    return status
 
 
 def rectToScreen(rect):
@@ -102,11 +132,13 @@ def drag(point_from, point_to):
     wait(.1)
 
     iterations = 20
-    x_offset = (point_to.x - point_from.x)/iterations
-    y_offset = (point_to.y - point_from.y)/iterations
+    offset = (point_to - point_from)/iterations
     point = point_from
     for i in range(iterations):
-        point = Point(point.x + x_offset, point.y + y_offset)
+        if checkStatus(false) == USER_HOME:
+            leftUp()
+            return
+        point += offset
         setMouseLoc(point)
         wait(.1)
 
@@ -116,15 +148,19 @@ def drag(point_from, point_to):
 
 
 def dragScreen(offset):
+    checkStatus()
     deadClick2()
     point = Point(1200 if (offset.width < 0) else 200, 1200 if (offset.height < 0) else 200)
     finish_point = Point(point.x + offset.width, point.y + offset.height)
     drag(point, finish_point)
+    checkStatus()
 
 
 def setMouseLoc(point):
-    win32api.SetCursorPos((int(Host.x + point.x), int(Host.y + point.y)))
-    Host.last_mouse_loc = point
+    point = point + Host.loc
+    win32api.SetCursorPos(point.toIntTuple())
+
+    Host.last_mouse_loc = getMouseLoc(false)
 
 
 def getMouseLoc(p=true, include_scroll=false):
