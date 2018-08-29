@@ -1,3 +1,4 @@
+from Settings import *
 from Vision import *
 from collect import *
 
@@ -166,11 +167,11 @@ def closeAnythingIfNecessary(event):
 
 ##### Functions #####
 def checkForLogin():
-    if(checkForButton(Colors.PLAY_NOW, true)):
+    if checkForButton(Colors.PLAY_NOW, true):
         slowClick(Locs.accept_terms, 5)
         clickButton(Colors.PLAY_NOW)
         wait(2)
-    elif(checkForButton(Colors.PLAY_NOW2, true)):
+    elif checkForButton(Colors.PLAY_NOW2, true):
         slowClick(Locs.accept_terms, 5)
         clickButton(Colors.PLAY_NOW2)
         wait(2)
@@ -186,19 +187,26 @@ def startGame():
         checkForLogin()
         slowClick(Locs.play_game)
         slowClick(Locs.sineria_select)
-        wait(30)
+        wait(Settings.start_wait_time)
 
     closeAnythingIfNecessary("start")
     checkStatus()
     deadClick()
     resizeChrome()
     deadClick(2)
-    if(clickButton(Colors.GUILD_EXPEDITION)):
-        wait(2)
+    if Settings.open_ge:
+        open_ge()
+    else:
+        closeAnythingIfNecessary("start")
+
+
+def open_ge():
+    if clickButton(Colors.GUILD_EXPEDITION):
         deadClick(2)
         clickButton(Colors.BACK_TO_CITY)
         wait(2)
-    closeAnythingIfNecessary("start")
+        closeAnythingIfNecessary("open ge")
+        deadClick(1)
 
 
 def resizeChrome(click=true):
@@ -242,12 +250,15 @@ def setGameScroll(p=false):
 def findTavern():
     if setGameScroll(): return true
 
-    for i in range(2):
+    attempts = 2
+    for i in range(attempts):
         if resetScreen() != true: continue
         dragScreenSafe(Size(-1000, 0))
 
         if setGameScroll(true):
             return true
+        elif i < attempts - 1:
+            open_ge()
         else:
             Logging.error(f"Wrong top left for tavern: {i}", "wrong_tavern_top_left")
 
@@ -418,54 +429,51 @@ def saveAndExitTreasure(i):
     verySlowClick(Locs.treasure_x_left_middle)
 
 
-def doStuff2(check_neighbors=true, b=(false, -1, true), do_quests=false, run_checks=true):
+def doStuff2():
     for i in range(1000):
         Logging.log(f"iteration: {i}")
 
         checkStatus()
         startGame()
 
-        #collectB()
-        #deadClick(2)
-
         checkStatus()
         closeAnythingIfNecessary("start")
 
-        if run_checks:
-            runChecks(check_neighbors)
+        if Settings.run_checks:
+            runChecks(Settings.check_neighbors)
 
-        collectB(b)
+        collectB()
 
         if checkStatus(false) == USER_HOME:
             Logging.warning(f"User is home. Not closing.")
-        elif not do_quests:
+        elif not Settings.loop_quests and Settings.shutdown:
             slowClick(Locs.chrome_close)
 
-        if b[0] and b[1] == 0:
+        if Settings.collect_smiths and Settings.smith_production == 0:
             for i in range(12):
                 wait(one_hour_time/12 - one_minute_time)
-                collectB(b, true, true)
+                collectB(true, true)
             wait(one_hour_time/12 - one_minute_time*3)
-        elif b[0] and b[1] == 1:
+        elif Settings.collect_smiths and Settings.smith_production == 1:
             for i in range(4):
                 wait(one_hour_time/4 - one_minute_time)
-                collectB(b, true, true)
+                collectB(true, true)
             wait(one_hour_time/4 - one_minute_time*3)
-        elif do_quests:
-            loop_ub_quests(100)
+        elif Settings.loop_quests:
+            loop_ub_quests(Settings.quests_to_loop)
         else:
-            wait(one_hour_time)
+            wait(Settings.shutdown_wait_time)
 
 
-def collectB(b, start=false, close=false):
-    if not b[0]:
+def collectB(start=false, close=false):
+    if not Settings.collect_smiths:
         return
 
     if start:
         startGame()
 
     findTavern()
-    collectBlacksmith(b[1], b[2])
+    collectBlacksmith(Settings.smith_production)
 
     if close:
         slowClick(Locs.chrome_close)
@@ -529,12 +537,9 @@ def setupTavernSeats():
 def main():
     pass
 
-    check_neighbors = true
-    b = (false, 2, true)
-    do_quests = false
-    run_checks = true
     # wait(1200)
-    doStuff2(check_neighbors, b, do_quests, run_checks)
+    if Settings.do_stuff:
+        doStuff2()
     #collectAlchemist()
     #setupTavernSeats()
     #saveLocToColor(Colors.FRIENDS_TAVERN_CLOSE)

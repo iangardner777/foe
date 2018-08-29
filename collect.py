@@ -69,7 +69,8 @@ def loop_ub_quests(n):
     click_quest(Colors.OPEN_QUEST)
     for i in range(n):
         loop_ub_quest()
-    click_quest(Colors.CLOSE_QUEST)
+    deadClick(1)
+    #click_quest(Colors.CLOSE_QUEST)
 
 
 def loop_ub_quest():
@@ -82,6 +83,8 @@ def loop_ub_quest():
 
 
 def click_quest(key, search=false):
+    checkStatus()
     clickButton(key, search=search)
+    checkStatus()
     setMouseLoc(Host.dead_click)
     wait(1)

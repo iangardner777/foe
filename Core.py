@@ -8,6 +8,7 @@ import win32gui
 from datetime import datetime
 from Locs import *
 from PIL import ImageGrab
+from Settings import *
 
 nan = 'NaN'
 os_sep = "\\"
@@ -20,7 +21,7 @@ INVALID_LOC = Point(-10000, -10000)
 
 class Host:
     x = 0
-    y = 110
+    y = 114
     loc = Point(x, y)
     width_pad = 14
     height_pad = 7
@@ -38,7 +39,7 @@ class Host:
     def checkStatus():
         loc = getMouseLoc(false)
         if Host.last_mouse_loc != INVALID_LOC and loc != Host.last_mouse_loc:
-            return NORMAL
+            #return NORMAL
             Logging.warning(f"User is home. loc: {loc} -- last loc: {Host.last_mouse_loc}")
             Host.last_mouse_loc = loc
             return USER_HOME
@@ -49,6 +50,9 @@ status = NORMAL
 wait_time = 0
 def checkStatus(do_wait = true):
     global status, wait_time
+
+    if not Settings.check_for_daddy:
+        return status
 
     status = Host.checkStatus()
     if do_wait:
@@ -64,7 +68,7 @@ def checkStatus(do_wait = true):
                     #print(current_mouse_loc.x - Host.dead_click.x, current_mouse_loc.y - Host.dead_click.y)
                     if checkStatus(false) != USER_HOME:
                         Logging.warning(f"Resuming. Cursor {current_mouse_loc} is near dead zone {Host.dead_click}")
-                        deadClick()
+                        #deadClick()
                         break
             checkStatus()
 
