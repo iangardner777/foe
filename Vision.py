@@ -79,10 +79,31 @@ def saveLocToColor(key, loc=None):
         print(f"{key_name} : ({loc.codeString()}, {color.codeString()})")
 
 
+def getColorSumObsolete(rect, i='default', debug=false, save=false):
+    image = screenShot(rect)
+    gray_image = ImageOps.grayscale(image)
+    colors = gray_image.getcolors()
+    arr = array(colors)
+    image_sum = arr.sum()
+    if debug:
+        saveImage(image, str(i) + '__' + str(image_sum))
+        print(i, rect, image_sum)
+    if save:
+        saveImage(image, "ImageSums" + os_sep + str(i) + '__' + str(image_sum), false)
+    return image_sum
+
+
 def getColorSum(rect, i='default', debug=false, save=false):
     image = screenShot(rect)
     gray_image = ImageOps.grayscale(image)
-    image_sum = array(gray_image.getcolors()).sum()
+    colors = gray_image.getcolors()
+    arr = array(colors)
+    image_sum = 0
+
+    for a in arr:
+        image_sum = image_sum + a[0] * a[1]
+
+
     if debug:
         saveImage(image, str(i) + '__' + str(image_sum))
         print(i, rect, image_sum)
@@ -92,12 +113,12 @@ def getColorSum(rect, i='default', debug=false, save=false):
 
 
 def saveColorSum(key):
-    getColorSum(Colors.sums[key][0], key, false, true)
+    getColorSumObsolete(Colors.sums[key][0], key, false, true)
 
 
 def confirmColorSum(key, printMiss=false):
     rect_and_sums = Colors.sums[key]
-    sum = getColorSum(rect_and_sums[0])
+    sum = getColorSumObsolete(rect_and_sums[0])
 
     values = ""
     for i in range(1, len(rect_and_sums)):

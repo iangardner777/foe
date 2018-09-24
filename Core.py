@@ -21,7 +21,7 @@ INVALID_LOC = Point(-10000, -10000)
 
 class Host:
     x = 0
-    y = 114
+    y = 109
     loc = Point(x, y)
     width_pad = 14
     height_pad = 7
@@ -94,6 +94,7 @@ def wait(duration):
 
 ##### Ix #####
 def click(point):
+    checkStatus()
     setMouseLoc(point)
     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0)
     wait(.05)
@@ -154,7 +155,7 @@ def drag(point_from, point_to):
 def dragScreen(offset):
     checkStatus()
     deadClick2()
-    point = Point(1200 if (offset.width < 0) else 200, 1200 if (offset.height < 0) else 200)
+    point = Point(1200 if (offset.width < 0) else 200, 1000 if (offset.height < 0) else 200)
     finish_point = Point(point.x + offset.width, point.y + offset.height)
     drag(point, finish_point)
     checkStatus()

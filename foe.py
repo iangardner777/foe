@@ -88,7 +88,7 @@ def doAid(chair_rect, i, attempts=2):
 
 def doTavern(chair_rect, i, attempts=2):
     checkStatus()
-    color_sum = getColorSum(chair_rect, i)
+    color_sum = getColorSumObsolete(chair_rect, i)
     if color_sum == Colors.chair_wait or color_sum == Colors.chair_blank:
         return true
 
@@ -182,11 +182,15 @@ def startGame():
         Logging.warning("Game was already started.")
     else:
         verySlowClick(Locs.chrome_taskbar)
+        deadClick() #this is to prevent a wait for user as the screen turns on and cursor resets to middle
         resizeChrome()
         slowClick(Locs.foe_shortcut, 5)
         checkForLogin()
         slowClick(Locs.play_game)
         slowClick(Locs.sineria_select)
+        slowClick(Point(640, 934))
+        slowClick(Point(346, 57))
+
         wait(Settings.start_wait_time)
 
     closeAnythingIfNecessary("start")
@@ -371,17 +375,17 @@ def checkTreasureHunt(always_check=false):
     # #offset = trackPixelVertical(Locs.treasure_x_left_middle, Colors.treasure_x_left_middle, image)
 
     loc = Locs.treasure_hunt_rect.center()
-    if getColorSum(Locs.treasure_hunt_rect) == Colors.treasure_hunt_ready:
+    if getColorSumObsolete(Locs.treasure_hunt_rect) == Colors.treasure_hunt_ready:
         Logging.log("Found treasure!")
-    elif getColorSum(Locs.treasure_hunt_rect_3) == Colors.treasure_hunt_ready:
+    elif getColorSumObsolete(Locs.treasure_hunt_rect_3) == Colors.treasure_hunt_ready:
         loc = Locs.treasure_hunt_rect_3.center()
         Logging.log("Found treasure!")
         Logging.warning("At 3!")
-    elif getColorSum(Locs.treasure_hunt_rect_2) == Colors.treasure_hunt_ready:
+    elif getColorSumObsolete(Locs.treasure_hunt_rect_2) == Colors.treasure_hunt_ready:
         loc = Locs.treasure_hunt_rect_2.center()
         Logging.log("Found treasure!")
         Logging.warning("At 2!")
-    elif getColorSum(Locs.treasure_hunt_rect_1) == Colors.treasure_hunt_ready:
+    elif getColorSumObsolete(Locs.treasure_hunt_rect_1) == Colors.treasure_hunt_ready:
         loc = Locs.treasure_hunt_rect_1.center()
         Logging.log("Found treasure!")
         Logging.warning("At 1!")
@@ -459,8 +463,8 @@ def doStuff2():
                 wait(one_hour_time/4 - one_minute_time)
                 collectB(true, true)
             wait(one_hour_time/4 - one_minute_time*3)
-        elif Settings.loop_quests:
-            loop_ub_quests(Settings.quests_to_loop)
+        elif Settings.loop_quests and i < Settings.quest_loops:
+            loop_ub_quests(Settings.quests_to_loop, i)
         else:
             wait(Settings.shutdown_wait_time)
 
@@ -540,6 +544,9 @@ def main():
     # wait(1200)
     if Settings.do_stuff:
         doStuff2()
+
+    #report_quest_reward(0)
+    #getColorSum(Rect(515, 397, 103, 61))
     #collectAlchemist()
     #setupTavernSeats()
     #saveLocToColor(Colors.FRIENDS_TAVERN_CLOSE)

@@ -5,7 +5,7 @@ false = False
 
 
 class Settings:
-    open_ge = false
+    open_ge = true
     start_wait_time = 10
     shutdown_wait_time = one_hour_time
     shutdown = true
@@ -14,8 +14,9 @@ class Settings:
     do_stuff = true
     run_checks = true
     check_neighbors = true
-    collect_smiths = false
-    smith_production = 4
+    collect_smiths = true
+    smith_production = 2
 
-    loop_quests = false
-    quests_to_loop = 80
+    loop_quests = true
+    quests_to_loop = 100
+    quest_loops = 100
