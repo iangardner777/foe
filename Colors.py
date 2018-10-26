@@ -75,6 +75,8 @@ class Colors:
     ABORT_QUEST = "abort_quest"
     ABORT_QUEST_7 = "abort_quest_7"
     UB_QUEST = "ub_quest"
+    UB_QUEST_c = "ub_quest_coins"
+    UB_QUEST_s = "ub_quest_supplies"
     COLLECT_QUEST = "collect_quest"
     CLOSE_QUEST = "close_quest"
     PLAY_NOW = "play_now"
@@ -94,6 +96,8 @@ class Colors:
         ABORT_QUEST:(Point(357, 500), Color(134, 41, 29)),
         ABORT_QUEST_7:(Point(358, 561), Color(127, 38, 26)),
         UB_QUEST:(Point(435, 562), Color(83, 127, 29)),
+        UB_QUEST_c:(Point(466, 446), Color(95, 55, 37)),
+        UB_QUEST_s:(Point(467, 515), Color(63, 33, 28)),
         COLLECT_QUEST:(Point(613, 470), Color(83, 127, 29)),
         CLOSE_QUEST:(Point(713, 92), Color(59, 75, 101)),
         PLAY_NOW:(Point(565, 534), Color(136, 28, 0)),

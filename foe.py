@@ -182,7 +182,7 @@ def startGame():
         Logging.warning("Game was already started.")
     else:
         verySlowClick(Locs.chrome_taskbar)
-        deadClick() #this is to prevent a wait for user as the screen turns on and cursor resets to middle
+        reset_status() #this is to prevent a wait for user as the screen turns on and cursor resets to middle
         resizeChrome()
         slowClick(Locs.foe_shortcut, 5)
         checkForLogin()
@@ -437,7 +437,7 @@ def doStuff2():
     for i in range(1000):
         Logging.log(f"iteration: {i}")
 
-        checkStatus()
+        #checkStatus() #I don't think we need this, check status is moving to more atomic functions
         startGame()
 
         checkStatus()

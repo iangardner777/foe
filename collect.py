@@ -86,7 +86,8 @@ def loop_ub_quest(num, iteration):
     for i in range(6):
         click_quest(Colors.ABORT_QUEST)
     click_quest(Colors.ABORT_QUEST_7)
-    click_quest(Colors.UB_QUEST)
+    click_quest(Colors.UB_QUEST_s)
+    click_quest(Colors.UB_QUEST_c)
     if not ensureButton(Colors.COLLECT_QUEST, search=true):
         return false
 

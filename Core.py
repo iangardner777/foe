@@ -76,6 +76,10 @@ def checkStatus(do_wait = true):
     return status
 
 
+def reset_status():
+    Host.last_mouse_loc = INVALID_LOC
+
+
 def rectToScreen(rect):
     x = rect.x + Host.x
     y = rect.y + Host.y
