@@ -64,7 +64,7 @@ def checkStatus(do_wait = true):
             for i in range(int(wait_time/wait_increment)):
                 wait(wait_increment)
                 current_mouse_loc = getMouseLoc(false)
-                if abs(current_mouse_loc.x - Host.dead_click.x) < 50 and abs(current_mouse_loc.y - Host.dead_click.y) < 10:
+                if abs(current_mouse_loc.x - Host.dead_click.x) < 50 and abs(current_mouse_loc.y - Host.dead_click.y) < 30:
                     #print(current_mouse_loc.x - Host.dead_click.x, current_mouse_loc.y - Host.dead_click.y)
                     if checkStatus(false) != USER_HOME:
                         Logging.warning(f"Resuming. Cursor {current_mouse_loc} is near dead zone {Host.dead_click}")
@@ -78,6 +78,11 @@ def checkStatus(do_wait = true):
 
 def reset_status():
     Host.last_mouse_loc = INVALID_LOC
+
+
+def set_safe_mouse_loc():
+    setMouseLoc(Host.dead_click)
+    wait(1)
 
 
 def rectToScreen(rect):
@@ -248,17 +253,28 @@ def saveImage(image, text, with_time=true):
 
 ##### Logging #####
 class Logging:
+    @staticmethod
     def log(text: str) -> None:
         print(f"{Logging.time(true)}: {text}")
 
-    def warning(text: str) -> None:
-        print(f"---- {text}")
+    @staticmethod
+    def print(text: str) -> None:
+        print(f"{Logging.time(true)}: {text}")
 
+    @staticmethod
+    def warning(text: str) -> None:
+        print(f"---- {Logging.time(true)} {text}")
+
+    @staticmethod
     def error(text: str, imageText: str) -> None:
-        print(f"#### {text}")
+        print(f"#### {Logging.time(true)} {text}")
         if not imageText:
             imageText = text
         saveImage(fullScreenShot(), imageText)
 
+    @staticmethod
     def time(self):
         return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+
+Log = Logging()

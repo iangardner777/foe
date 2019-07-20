@@ -29,6 +29,9 @@ class Color:
     def isClose(self, other):
         return self.equals(other, 20)
 
+    def isKindaClose(self, other):
+        return self.equals(other, 50)
+
     def __str__(self):
         return f"({self.r}, {self.g}, {self.b})"
 
@@ -54,10 +57,10 @@ class Colors:
     TOP_LEFT_900 = "top_left_900_0"
     TOP_LEFT_950 = "top_left_950_0"
     sums = {
-        TOP_LEFT    :(Rect(200, 200, 20, 20), 9548, 8962, 8174, 7537, 7536, 8764, 8955, 8165),
-        TOP_LEFT_850:(Rect(300, 200, 20, 20), 4727, 4645, 5318, 4741, 4534, 4606),
-        TOP_LEFT_900:(Rect(250, 200, 20, 20), 4727, 4645, 5318, 4741, 4534, 4606),
-        TOP_LEFT_950:(Rect(200, 200, 20, 20), 4727, 4645, 5318, 4741, 4534, 4606),
+        TOP_LEFT    :(Rect(200, 200, 20, 20), 9168, 9111, 9548, 8962, 8174, 7537, 7536, 8764, 8955, 8165),
+        TOP_LEFT_900:(Rect(250, 200, 20, 20), 4871, 4781, 4727, 4645, 5318, 4741, 4534, 4606),
+        TOP_LEFT_950:(Rect(200, 200, 20, 20), 4871, 4781, 4727, 4645, 5318, 4741, 4534, 4606),
+        TOP_LEFT_850:(Rect(300, 200, 20, 20), 4871, 4781, 4727, 4645, 5318, 4741, 4534, 4606),
 
         # "test":(Rect(1150, 200, 20, 20), 4606)
     }
@@ -131,7 +134,8 @@ class Colors:
 
     chair_blank = 1281
     # chair_blank = 1998
-    chair_wait = 10220
+    chair_wait = 10227
+    # chair_wait = 10220
     # chair_wait = 9992
     chair_open = 8716
     # chair_open = 8892

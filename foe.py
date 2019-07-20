@@ -1,6 +1,5 @@
-from Settings import *
-from Vision import *
 from collect import *
+from ubq import *
 
 nan = 'NaN'
 
@@ -145,10 +144,6 @@ def closeIncidentIfNecessary():
         return true
 
 
-def closeBluePrintIfNecessary():
-    return clickButtonIfNecessary(Colors.BP_CLOSE)
-
-
 def closeGbRewardIfNecessary():
     clicked = clickButtonIfNecessary(Colors.GB_REWARD_OKAY, picture="GB_Rewards")
     if clicked:
@@ -181,7 +176,7 @@ def startGame():
     if checkForColor(Colors.DEAD_CLICK):
         Logging.warning("Game was already started.")
     else:
-        verySlowClick(Locs.chrome_taskbar)
+        slowClick(Locs.chrome_taskbar, 10)
         reset_status() #this is to prevent a wait for user as the screen turns on and cursor resets to middle
         resizeChrome()
         slowClick(Locs.foe_shortcut, 5)
@@ -206,6 +201,7 @@ def startGame():
 
 def open_ge():
     if clickButton(Colors.GUILD_EXPEDITION):
+        wait(2)
         deadClick(2)
         clickButton(Colors.BACK_TO_CITY)
         wait(2)
@@ -329,8 +325,14 @@ def clickFriendsTab():
     if color in Colors.friends_tab_list:
         slowClick(Locs.friends_tab)
     else:
+        # just a hack because the colors changed. I want to think of a better way to
+        # automatically update colors.
+        slowClick(Locs.friends_tab)
+        deadClick(1)
+
         Logging.warning(f"Friends tab not expanded: {color}")
         slowClick(Locs.friends_tab_collapsed)
+        deadClick(1)
 
     clickFriendsBack()
 
@@ -504,7 +506,7 @@ def startEvent():
         saveImage(my_list[i], "Event" + os_sep + str(i))
 
 
-def setupTavernSeats():
+def setup_tavern_seats():
     deadClick()
     ensure_dir(TAVERN_VISITS_PATH)
     loadTavernVisits()
@@ -513,8 +515,8 @@ def setupTavernSeats():
     clickFriendsTab()
 
     for i in range(29):
-        for i in range(5):
-            chair_rect = rectPlusX(Locs.chair_rect, i*Locs.friend_spacing)
+        for j in range(5):
+            chair_rect = rectPlusX(Locs.chair_rect, j*Locs.friend_spacing)
 
             slowClick(chair_rect.center(), 3)
             ensureFriendsTavernClose()
@@ -538,11 +540,16 @@ def setupTavernSeats():
         Logging.warning(f"{friend} was in dict with {visits} visits, but wasn't found in friend list.")
         file.write(f"{friend}:{visits}\n")
 
+
 def main():
     pass
-
+    # resizeChrome()
+    if Settings.do_test:
+        pass
+        loop_ub_quest(1, 1)
     # wait(1200)
     if Settings.do_stuff:
+        pass
         doStuff2()
 
     #report_quest_reward(0)

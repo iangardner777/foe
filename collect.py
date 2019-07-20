@@ -82,7 +82,7 @@ def loop_ub_quests(num, iteration):
     #click_quest(Colors.CLOSE_QUEST)
 
 
-def loop_ub_quest(num, iteration):
+def loop_ub_quest2(num, iteration):
     for i in range(6):
         click_quest(Colors.ABORT_QUEST)
     click_quest(Colors.ABORT_QUEST_7)
@@ -181,3 +181,5 @@ def report_quest_reward(i, iteration):
     file = open(QUEST_REWARDS_PATH_BACKUP, "a+")
     file.write(f"{iteration}-{i}:{color_sum}\n")
     file.close()
+
+

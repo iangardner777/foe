@@ -2,6 +2,7 @@ from Core import *
 from Colors import *
 
 import os
+from PIL import Image
 from PIL import ImageOps
 from numpy import *
 from pytesseract import *
@@ -101,8 +102,7 @@ def getColorSum(rect, i='default', debug=false, save=false):
     image_sum = 0
 
     for a in arr:
-        image_sum = image_sum + a[0] * a[1]
-
+        image_sum = image_sum + a[0]*a[1]
 
     if debug:
         saveImage(image, str(i) + '__' + str(image_sum))
@@ -184,6 +184,8 @@ def checkForColor(key):
 
 
 char_whitelist = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
 def readText(rect):
     image = screenShot(rect)
 
@@ -195,3 +197,249 @@ def readText(rect):
     #return image_to_string(image, config='-oem 0 -psm 7 -c tessedit_char_whitelist=0123456789abcdefghijklmnopqrstuvwxyz')
     return image_to_string(image, config=' -psm 7 foe_tavern_names')
     #return image_to_string(image, "eng", f"-psm 7 -c tessedit_char_whitelist={char_whitelist}")
+
+
+def read_text(rect, image, treated=true):
+    # rect = getRect()
+    # rect = Rect(13, 156, 261, 17)
+    # rect = Locs.friend_tavern_name_rect
+
+    # image = screenShot(rect)
+
+    # saveImage(image, "test_full")
+    image = image.crop(rect.toSystemTuple())
+    # saveImage(image, 'test')
+
+    img = Image.new(image.mode, image.size)
+    pixelMap = image.load()
+    pixelsNew = img.load()
+
+    thresh = 150
+    thresh2 = 200
+
+    for i in range(img.size[0]):
+        for j in range(img.size[1]):
+            pixel = pixelMap[i, j]
+            # if pixel[0] > thresh and pixel[1] > thresh and pixel[2] > thresh and sum(pixel) > thresh2*3:
+            if pixel[0] > thresh2 and pixel[1] > thresh2 and pixel[2] > thresh2:
+                pixelsNew[i, j] = (0, 0, 0)
+            elif pixel[0] > thresh and pixel[1] > thresh and pixel[2] > thresh:
+                pixelsNew[i, j] = (128, 128, 128)
+            else:
+                pixelsNew[i, j] = (255, 255, 255)
+    #img.show()
+
+    # saveImage(img, 'test_treated')
+
+    # text1 = image_to_string(image, config=' -psm 7 foe_quest_names.txt')
+    # Log.print(text)
+    text = image_to_string(img, config=' -psm 7 foe_quest_names.txt')
+    # Log.print(text)
+
+    image.close()
+    img.close()
+    # pixelMap.close()
+    # pixelsNew.close()
+    return text
+
+
+def save_image_live():
+    # rect = getRect()
+    # image = screenShot(rect)
+
+    image = Image.open("data/test.png")
+    saveImage(image, 'test2')
+
+
+pixels_large = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0),
+                (0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (6, 1),
+                (0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (5, 2), (6, 2),
+                (0, 3), (1, 3), (2, 3), (3, 3), (4, 3), (5, 3), (6, 3),
+                (0, 4), (1, 4), (2, 4), (3, 4), (4, 4), (5, 4), (6, 4),
+                (0, 5), (1, 5), (2, 5), (3, 5), (4, 5), (5, 5), (6, 5),
+                (0, 6), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6), (6, 6)]
+
+pixels_small = [(0, 0), (1, 0), (2, 0), (3, 0),
+                (0, 1), (1, 1), (2, 1), (3, 1),
+                (0, 2), (1, 2), (2, 2), (3, 2),
+                (0, 3), (1, 3), (2, 3), (3, 3)]
+
+
+def find_image(screen, image, point, large=false):
+    screen_map = screen.load()
+    image_map = image.load()
+
+    pixels_to_check = pixels_large if large else pixels_small
+
+    offset = 50
+    r = (range(max(point.x - offset, 0), point.x + offset), range(max(point.y - offset, 0), point.y + offset))
+    for i in r[0]:
+        for j in r[1]:
+            found = true
+
+            pixels_found = 0
+
+            for k in pixels_to_check:
+                screen_pixel = Color.fromTuple(screen_map[i + k[0], j + k[1]])
+                image_pixel = Color.fromTuple(image_map[k[0], k[1]])
+                if not screen_pixel.isVeryClose(image_pixel):
+                    found = false
+                    break
+                else:
+                    pixels_found += 1
+
+            # print(f"Pixels found: {pixels_found}")
+
+            if found:
+                # screen_map.close()
+                # image_map.close()
+                return Point(i, j)
+
+    # screen_map.close()
+    # image_map.close()
+    return INVALID_LOC
+
+
+def pixels_to_image():
+    img = Image.new('RGB', (6, 6))
+
+    pass
+
+
+def find_image_test(screen, image, point):
+    screen_map = screen.load()
+    image_map = image.load()
+
+    # pixels_to_check = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0),
+    #                    (0, 1), (1, 1), (2, 1), (3, 1), (4, 1), (5, 1),
+    #                    (0, 2), (1, 2), (2, 2), (3, 2), (4, 2), (5, 2),
+    #                    (0, 3), (1, 3), (2, 3), (3, 3), (4, 3), (5, 3),
+    #                    (0, 4), (1, 4), (2, 4), (3, 4), (4, 4), (5, 4),
+    #                    (0, 5), (1, 5), (2, 5), (3, 5), (4, 5), (5, 5)]
+
+    pixels_to_check = [(0, 0), (1, 0), (2, 0), (3, 0),
+                       (0, 1), (1, 1), (2, 1), (3, 1),
+                       (0, 2), (1, 2), (2, 2), (3, 2),
+                       (0, 3), (1, 3), (2, 3), (3, 3)]
+
+    # saveImage(image, "test")
+
+    img = Image.new('RGB', (4, 4))
+    img_pixels = img.load()
+    for k in pixels_to_check:
+        img_pixels[k[0], k[1]] = image_map[k[0], k[1]]
+
+    # saveImage(image, "test")
+    saveImage(img, "test2")
+
+    offset = 200
+    r = (range(max(point.x - offset, 0), point.x + offset), range(max(point.y - offset, 0), point.y + offset))
+    for i in r[0]:
+        for j in r[1]:
+            found = true
+
+            pixels_found = 0
+            screen_test_image = Image.new('RGB', (4, 4))
+            screen_test_pixels = screen_test_image.load()
+
+            for k in pixels_to_check:
+                screen_test_pixels[k[0], k[1]] = screen_map[i + k[0], j + k[1]]
+
+                screen_pixel = Color.fromTuple(screen_map[i + k[0], j + k[1]])
+                image_pixel = Color.fromTuple(image_map[k[0], k[1]])
+                if not screen_pixel.isClose(image_pixel):
+                    found = false
+                    # break
+                else:
+                    pixels_found += 1
+
+            if pixels_found > 6:
+                print(f"Pixels found: {pixels_found}")
+                saveImage(screen_test_image, f"{i}x{j}")
+                getMouseLoc()
+                pass
+
+            # print(f"Pixels found: {pixels_found}")
+            # saveImage(screen_test_image, f"{i}x{j}")
+
+            if found:
+                return Point(i, j)
+
+    return INVALID_LOC
+
+
+markers_folder = "data/markers/"
+
+
+def save_marker(marker, point=INVALID_LOC, ref_point=Point(0, 0), variance=Point(20, 20)):
+    if point == INVALID_LOC:
+        point = getMouseLoc()
+    set_safe_mouse_loc()
+    rect = point.withSize(Size(20, 20))
+    image = screenShot(rect)
+    saveImage(image, f"{markers_folder}{marker}", false)
+    save_marker_info(marker, point - ref_point, ref_point, variance)
+
+
+def save_marker_info(marker, point, offset, variance):
+    file = open(f"{markers_folder}{marker}.txt", "w+")
+    file.write(f"{marker}:{point}:{offset}:{variance}")
+    Log.print(f"Saving: {marker}:{point}:{offset}:{variance}")
+
+
+def save_marker_from(marker, ref_point=INVALID_LOC, ref_marker=None):
+    if ref_point == INVALID_LOC and ref_marker is not None:
+        ref_point = find_marker(ref_marker)
+
+    point = getMouseLoc()
+    save_marker(marker, point, ref_point)
+
+
+def copy_marker(marker, ref_marker):
+    point, offset, variance = load_marker_info(ref_marker)
+
+    save_marker(marker, point, offset, variance)
+
+
+def copy_marker_from(marker, ref_marker, ref_point):
+    point, offset, variance = load_marker_info(ref_marker)
+
+    save_marker(marker, point + ref_point, ref_point, variance)
+
+
+def load_marker_info(marker):
+    file = open(f"{markers_folder}{marker}.txt", "r")
+    line = file.readline()
+    marker_info = line.strip("\n").split(":")
+
+    point = INVALID_LOC.fromString(marker_info[1])
+    offset = INVALID_LOC.fromString(marker_info[2])
+    variance = INVALID_LOC.fromString(marker_info[3])
+    file.close()
+    return point, offset, variance
+
+
+def find_marker_full(marker, screen=None, ref_point=Point(0, 0), large=false, debug=false):
+    if screen is None:
+        screen = fullScreenShot()
+    point, offset, variance = load_marker_info(marker)
+    point += ref_point
+
+    image = Image.open(f"{markers_folder}{marker}.png")
+
+    if debug:
+        real_point = find_image_test(screen, image, point)
+    else:
+        real_point = find_image(screen, image, point, large)
+
+    # print(f"{point} :: {real_point}")
+    image.close()
+    return real_point, offset, variance
+
+
+def find_marker(marker, screen=None, ref_point=Point(0, 0), large=false, debug=false):
+    return find_marker_full(marker, screen, ref_point, large, debug)[0]
+
+
+def click_marker(marker):
+    pass

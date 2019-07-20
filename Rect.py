@@ -14,6 +14,10 @@ class Point:
     def toIntTuple(self):
         return int(self.x), int(self.y)
 
+    def fromString(self, point):
+        x, y = point.strip("()").split(",")
+        return Point(int(x), int(y))
+
     def __add__(self, other):
         return Point(self.x + other.x, self.y + other.y)
 
@@ -31,6 +35,9 @@ class Point:
 
     def __str__(self):
         return f"({self.x}, {self.y})"
+
+    def withSize(self, size):
+        return Rect(self.x, self.y, size.width, size.height)
 
     def codeString(self):
         return f"Point{self}"
@@ -63,6 +70,9 @@ class Rect:
 
     def toTuple(self):
         return self.x, self.y, self.width, self.height
+
+    def toSystemTuple(self):
+        return self.x, self.y, self.x + self.width, self.y + self.height
 
     def __eq__(self, other) -> bool:
         return self.x == other.x and self.y == other.y and self.width == other.width and self.height == other.height
