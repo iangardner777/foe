@@ -66,6 +66,8 @@ class Colors:
     }
 
     DEAD_CLICK = "dead_click"
+    DEAD_CLICK_FADED = "dead_click_faded"
+    DEAD_CLICK_FADED2 = "dead_click_faded2"
     GUILD_EXPEDITION = "guild_expedition"
     BACK_TO_CITY = "back_to_city"
     FRIEND_ACCEPT_OKAY = "friend_accept_ok"
@@ -85,8 +87,11 @@ class Colors:
     PLAY_NOW = "play_now"
     PLAY_NOW2 = "play_now2"
     loc_and_color = {
-        #DEAD_CLICK:(Host.dead_click, Color(84, 56, 31)),
-        DEAD_CLICK:(Host.dead_click, Color(85, 53, 26)),
+        # DEAD_CLICK:(Host.dead_click, Color(84, 56, 31)),
+        # DEAD_CLICK:(Host.dead_click, Color(85, 53, 26)),
+        DEAD_CLICK:(Host.dead_click, Color(88, 60, 32)),
+        DEAD_CLICK_FADED:(Host.dead_click, Color(35, 24, 13)),
+        DEAD_CLICK_FADED2:(Host.dead_click, Color(53, 36, 19)),
         GUILD_EXPEDITION:(Point(160, 1193), Color(210, 180, 142)),
         BACK_TO_CITY:(Point(175, 1160), Color(150, 83, 34)),
         FRIEND_ACCEPT_OKAY:(Point(721, 720), Color(151, 83, 34)),

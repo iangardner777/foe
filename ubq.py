@@ -8,8 +8,12 @@ all_quests = {}
 
 
 def get_quest_names():
+    load_quest_names()
+    open_quests()
+
     for i in range(8):
         find_quests()
+        abort_quest()
 
 
 def load_quest_names():
@@ -30,6 +34,7 @@ def get_other_q_type(q_type):
     Log.warning(f"Don't know how to find other for {type}.")
 
 
+INVALID_QUEST = -1
 UBQ = 1
 COIN = 2
 SUPPLY = 3
@@ -38,6 +43,7 @@ q1 = None
 p1 = INVALID_LOC
 q2 = None
 p2 = INVALID_LOC
+quest_num = 0
 current_screen = None
 
 
@@ -71,70 +77,51 @@ def loop_ub_quest(num, iteration):
 
     open_quests()
 
-    while true:
-        # global q1, p1, q2, p2
-        find_quests()
+    global quest_num
+    quest_num = 0
+    while quest_num < num:
+        if not find_quests():
+            saveImage(get_current_screen(), "QUEST_NOT_FOUND_LOOP_UBQ")
+            Logging.warning("Didn't find quest in loop ubq!")
+            return false
 
-        # if Settings.do_test:
-        #     return
+        if q1 == INVALID_QUEST:
+            saveImage(get_current_screen(), "INVALID_QUEST_LOOP_UBQ")
+            Logging.warning("Invalid quest found in loop ubq!")
+            return false
 
-        if q1 == COIN:
-            collect_point = find_marker("collect", get_current_screen(), p1)
-            if collect_point != INVALID_LOC:
-                collect_quest(p1, q1)
-                # loop_ub_quest(num, iteration)
-            elif q2 == UBQ:
-                # print("found it")
-                pay_ubq(p2)
-                collect_quest(p2)
-                # loop_ub_quest(num, iteration)
-            else:
-                abort_quest2()
-                # loop_ub_quest(num, iteration)
-        elif q1 == SUPPLY:
-            collect_point = find_marker("collect", get_current_screen(), p1)
-            if collect_point != INVALID_LOC:
-                collect_quest(p1, q1)
-                # loop_ub_quest(num, iteration)
-            elif q2 == UBQ:
-                # print("found it 2")
-                pay_ubq(p2)
-                collect_quest(p2)
-                # loop_ub_quest(num, iteration)
-            else:
-                abort_quest2()
-                # loop_ub_quest(num, iteration)
-        elif q1 == UBQ:
-            # print("found it 3")
-            pay_ubq(p1)
-            collect_quest(p1)
-            # loop_ub_quest(num, iteration + 1)
-            pass
-            # pay_ubq(p2, screen)
-            # collect_ubq(p2, screen)
+        if q1 == UBQ:
+            if not collect_quest(p1):
+                return false
         else:
-            abort_quest()
-            # loop_ub_quest(num, iteration)
+            collect_point = find_marker("collect", get_current_screen(), p1)
+            if collect_point != INVALID_LOC:
+                if not collect_quest(p1, q1):
+                    return false
+            elif q2 == UBQ:
+                if not collect_quest(p2):
+                    return false
+            else:
+                if q1 != COIN and q1 != SUPPLY and (q2 == COIN or q2 == SUPPLY):
+                    abort_quest()
+                else:
+                    abort_quest2()
 
-    # if q1 == UBQ:
-    #     print("found it")
-    # else:
-    #     point = find_marker("abort")
-    #     slowClick(point)
-    #     loop_ub_quest(num, iteration)
-
-
-    # for i in range(6):
-    #     click_quest(Colors.ABORT_QUEST)
-    # click_quest(Colors.ABORT_QUEST_7)
-    # click_quest(Colors.UB_QUEST_s)
-    # click_quest(Colors.UB_QUEST_c)
-    # if not ensureButton(Colors.COLLECT_QUEST, search=true):
-    #     return false
-    #
-    # report_quest_reward(num, iteration)
-    # click_quest(Colors.COLLECT_QUEST, true)
-    # closeBluePrintIfNecessary()
+        # elif q1 == COIN or q1 == SUPPLY or q1 == FP:
+        #     collect_point = find_marker("collect", get_current_screen(), p1)
+        #     if collect_point != INVALID_LOC:
+        #         collect_quest(p1, q1)
+        #     elif q2 == UBQ:
+        #         collect_quest(p2)
+        #     else:
+        #         if q1 == FP:
+        #             abort_quest()
+        #         else:
+        #             abort_quest2()
+        # elif q1 == UBQ:
+        #     collect_quest(p1)
+        # else:
+        #     abort_quest()
     return true
 
 
@@ -161,22 +148,30 @@ def pay_ubq(point):
 
 
 def collect_quest(point, from_quest=UBQ):
+    if from_quest == UBQ:
+        pay_ubq(point)
+
     for reward in rewards:
         if collect_reward(point, reward, from_quest):
             return true
+        if q1 == INVALID_QUEST:
+            return false
 
     #try a second time to avoid too fast errors
     wait(5)
+    if from_quest == UBQ:
+        pay_ubq(point)
     for reward in rewards:
         if collect_reward(point, reward, from_quest):
             return true
+        if q1 == INVALID_QUEST:
+            return false
 
-
-    reward = input("What is the resource?")
-    copy_marker_from(f"r_{reward}", "r_medals", point)
-    rewards.add(reward)
-    print(f"{rewards}")
-    return true
+    # reward = input("What is the resource?")
+    # copy_marker_from(f"r_{reward}", "r_medals", point)
+    # rewards.add(reward)
+    # print(f"{rewards}")
+    return false
 
 
 # rewards = {"brass", "basalt", "medals"}
@@ -185,23 +180,27 @@ collect_quest_point = INVALID_LOC
 
 
 def collect_reward(point, reward, from_quest=UBQ):
-    global collect_quest_point
+    global collect_quest_point, quest_num
     collect_quest_point = point
     reward_point = find_marker(f"r_{reward}", get_current_screen(), collect_quest_point, true)
-    if reward_point != INVALID_LOC:
-        if reward == 'coins' and from_quest != COIN:
-            ensure_coins(check_for_big(reward_point))
-        elif reward == 'supplies' and from_quest != SUPPLY:
-            ensure_supplies(check_for_big(reward_point))
+    if reward_point == INVALID_LOC:
+        return false
 
-        collect_point = find_marker("collect", get_current_screen(), collect_quest_point)
-        Logging.print(f"Collecting: {reward}")
-        slowClick(collect_point, 2)
-        clear_current_screen()
-        if reward == 'blue_print':
-            deadClick(1)
-        return true
-    return false
+    if reward == 'coins' and from_quest != COIN:
+        if not ensure_coins(check_for_big(reward_point)):
+            return false
+    elif reward == 'supplies' and from_quest != SUPPLY:
+        if not ensure_supplies(check_for_big(reward_point)):
+            return false
+
+    collect_point = find_marker("collect", get_current_screen(), collect_quest_point)
+    Logging.print(f"Collecting: {reward}")
+    slowClick(collect_point, 2)
+    quest_num += 1
+    clear_current_screen()
+    if reward == 'blue_print':
+        deadClick(1)
+    return true
 
 
 def check_for_big(point):
@@ -209,21 +208,19 @@ def check_for_big(point):
 
 
 def ensure_coins(big):
-    ensure_helper(big, COIN)
+    return ensure_helper(big, COIN)
 
 
 def ensure_supplies(big):
-    ensure_helper(big, SUPPLY)
+    return ensure_helper(big, SUPPLY)
 
 
 def ensure_helper(big, q_type):
     other_type = get_other_q_type(q_type)
     global q1, p1, q2, p2, collect_quest_point
-    if q1 == q_type or q2 == q_type:
-        return
-    else:
+    if q1 != q_type and q2 != q_type:
         if not big and (q1 == other_type and check_for_half(p1) or q2 == other_type and check_for_half(p2)):
-            return
+            return true
 
         if q2 == UBQ:
             abort_quest()
@@ -232,19 +229,23 @@ def ensure_helper(big, q_type):
 
         find_quests()
         while q2 != q_type:
+            old_q2 = q2
             abort_quest2()
             find_quests()
+            if old_q2 == q2:
+                return false
 
         collect_quest_point = p1
+    return true
 
 
 def check_for_half(point):
     return find_marker("half", get_current_screen(), point)
 
 
-def find_quests():
-    global q1, p1, q2, p2
-    q1 = q2 = None
+def find_quest1():
+    global q1, p1
+    q1 = None
 
     p1 = find_marker_full("quest", get_current_screen())[0]
     if p1 != INVALID_LOC:
@@ -252,10 +253,14 @@ def find_quests():
         p1.y += 2
         # print(f"found: {point}")
         q1 = get_quest_num(p1, get_current_screen())
-    else:
-        Logging.warning("First quest not found.")
-        open_quests() #this resets the scroll and the screen to hopefully find on second attempt
-        find_quests()
+        return true
+
+    return false
+
+
+def find_quest2():
+    global q2, p2
+    q2 = None
 
     p2 = find_marker_full("quest2", get_current_screen())[0]
     if p2 != INVALID_LOC:
@@ -263,12 +268,68 @@ def find_quests():
         p2.y += 4
         # print(f"found: {point2}")
         q2 = get_quest_num(p2, get_current_screen())
-    else:
-        Logging.warning("Second quest not found.")
-        open_quests() #this resets the scroll and the screen to hopefully find on second attempt
-        find_quests()
+        return true
 
-    return q1, p1, q2, p2
+    return false
+
+
+def find_quests():
+    if find_quest1() and find_quest2():
+        return true
+
+    #some kind of logging needed here for optimization later
+    wait(2)
+    clear_current_screen()
+    if find_quest1() and find_quest2():
+        return true
+
+    wait(5)
+    clear_current_screen()
+    if find_quest1() and find_quest2():
+        return true
+
+    saveImage(get_current_screen(), "QUEST_NOT_FOUND")
+    Logging.warning("Quest not found 1.")
+
+    deadClick(10)
+    open_quests()  #this resets the scroll and the screen to hopefully find on second attempt
+    if find_quest1() and find_quest2() and q1 != INVALID_QUEST and q2 != INVALID_QUEST:
+        return true
+
+    saveImage(get_current_screen(), "QUEST_NOT_FOUND2")
+    Logging.warning("Quest not found 2.")
+    return false
+
+
+    # if not find_quest1() or not find_quest2():
+    #     wait(5)
+    #     clear_current_screen()
+    #     if not find_quest1() or not find_quest2(): #some kind of logging needed here for optimization later
+    #         saveImage(get_current_screen(), "FIRST_QUEST_NOT_FOUND1")
+    #         Logging.warning("First quest not found 1.")
+    #
+    #         deadClick(10)
+    #         open_quests() #this resets the scroll and the screen to hopefully find on second attempt
+    #         if not find_quest1() or :
+    #             saveImage(get_current_screen(), "FIRST_QUEST_NOT_FOUND2")
+    #             Logging.warning("First quest not found 2.")
+    #             return false
+    #
+    # if not find_quest2():
+    #     wait(5)
+    #     clear_current_screen()
+    #     if not find_quest2(): #some kind of logging needed here for optimization later
+    #         saveImage(get_current_screen(), "SECOND_QUEST_NOT_FOUND1")
+    #         Logging.warning("Second quest not found 1.")
+    #
+    #         deadClick(10)
+    #         open_quests() #this resets the scroll and the screen to hopefully find on second attempt
+    #         if not find_quest2():
+    #             saveImage(get_current_screen(), "SECOND_QUEST_NOT_FOUND2")
+    #             Logging.warning("Second quest not found 2.")
+    #             return false
+    #
+    # return true
 
     # if text not in quests:
     #     print(f"adding {text}")
@@ -283,15 +344,24 @@ def find_quests():
     #     quests.add(text2)
 
 
-def get_quest_num(point, screen):
+def get_quest_num(point, screen, read=false):
     size = Size(400, 17)
 
-    text = read_text(point.withSize(size), screen)
+    text = read_text(point.withSize(size), screen, true)
     text2 = text.split("(", 1)[0].strip()
 
     try:
-        quest_num = all_quests[text2]
+        q_num = all_quests[text2]
     except KeyError:
+        saveImage(get_current_screen(), "QuestNotInDictionary")
         Logging.warning(f"Quest not in dictionary: {text2}")
-        quest_num = -1
-    return quest_num
+
+        text = read_text(point.withSize(size), screen, true, true)
+
+        q_num = INVALID_QUEST
+
+    if read:
+        Logging.print(text)
+        Logging.print(text2)
+
+    return q_num

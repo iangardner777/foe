@@ -199,42 +199,65 @@ def readText(rect):
     #return image_to_string(image, "eng", f"-psm 7 -c tessedit_char_whitelist={char_whitelist}")
 
 
-def read_text(rect, image, treated=true):
-    # rect = getRect()
-    # rect = Rect(13, 156, 261, 17)
-    # rect = Locs.friend_tavern_name_rect
+def read_text(rect, image, enlarge=false, debug=false):
+    if debug:
+        saveImage(image, "N_test_full")
 
-    # image = screenShot(rect)
-
-    # saveImage(image, "test_full")
     image = image.crop(rect.toSystemTuple())
-    # saveImage(image, 'test')
+    if enlarge:
+        nx, ny = image.size
+        image = image.resize((int(nx*4), int(ny*4)), Image.BICUBIC)
+
+    if debug:
+        saveImage(image, 'N_test')
 
     img = Image.new(image.mode, image.size)
-    pixelMap = image.load()
-    pixelsNew = img.load()
+    pixel_map = image.load()
+    pixels_new = img.load()
 
     thresh = 150
     thresh2 = 200
 
     for i in range(img.size[0]):
         for j in range(img.size[1]):
-            pixel = pixelMap[i, j]
+            pixel = pixel_map[i, j]
             # if pixel[0] > thresh and pixel[1] > thresh and pixel[2] > thresh and sum(pixel) > thresh2*3:
             if pixel[0] > thresh2 and pixel[1] > thresh2 and pixel[2] > thresh2:
-                pixelsNew[i, j] = (0, 0, 0)
+                pixels_new[i, j] = (0, 0, 0)
             elif pixel[0] > thresh and pixel[1] > thresh and pixel[2] > thresh:
-                pixelsNew[i, j] = (128, 128, 128)
+                pixels_new[i, j] = (128, 128, 128)
             else:
-                pixelsNew[i, j] = (255, 255, 255)
+                pixels_new[i, j] = (255, 255, 255)
     #img.show()
 
-    # saveImage(img, 'test_treated')
-
-    # text1 = image_to_string(image, config=' -psm 7 foe_quest_names.txt')
-    # Log.print(text)
     text = image_to_string(img, config=' -psm 7 foe_quest_names.txt')
-    # Log.print(text)
+    if debug:
+        saveImage(img, 'N_test_treated')
+        text1 = image_to_string(image, config=' -psm 7 foe_quest_names.txt')
+
+        nx, ny = img.size
+        img2 = img.resize((int(nx*4), int(ny*4)), Image.BICUBIC)
+        saveImage(img2, "N_resize1")
+        text2 = image_to_string(img2, config=' -psm 7 foe_quest_names.txt')
+
+        # img3 = img.resize((int(nx*32), int(ny*32)), Image.BICUBIC)
+        # saveImage(img3, "N_resize_big1")
+        # text3 = image_to_string(img3, config=' -psm 7 foe_quest_names.txt')
+
+        img4 = image.resize((int(nx*4), int(ny*4)), Image.BICUBIC)
+        saveImage(img4, "N_resize2")
+        text4 = image_to_string(img4, config=' -psm 7 foe_quest_names.txt')
+
+        # img5 = image.resize((int(nx*32), int(ny*32)), Image.BICUBIC)
+        # saveImage(img5, "N_resize_big2")
+        # text5 = image_to_string(img5, config=' -psm 7 foe_quest_names.txt')
+
+        Log.print(f"reg: {text1}")
+        Log.print(f"reg large: {text4}")
+        Log.print(f"treated: {text}")
+        Log.print(f"treated large: {text2}")
+        # Log.print(text3)
+        # Log.print(text5)
 
     image.close()
     img.close()

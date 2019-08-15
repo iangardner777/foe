@@ -225,7 +225,17 @@ def clean_filename(name):
 
 ##### Screenshots #####
 def screenShot(rect):
-    return ImageGrab.grab(rectToScreen(rect).toTuple())
+    try:
+        image = ImageGrab.grab(rectToScreen(rect).toTuple())
+    except OSError:
+        Logging.warning("Error grabbing screenshot")
+        try:
+            image = ImageGrab.grab(rectToScreen(rect).toTuple())
+        except OSError:
+            Logging.warning("Error grabbing screenshot 2")
+            return false
+
+    return image
 
 
 def fullScreenShot():

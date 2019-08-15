@@ -173,7 +173,12 @@ def checkForLogin():
 
 
 def startGame():
+    if checkForColor(Colors.DEAD_CLICK_FADED) or checkForColor(Colors.DEAD_CLICK_FADED2):
+        deadClick(2)
+
+    was_started = false
     if checkForColor(Colors.DEAD_CLICK):
+        was_started = true
         Logging.warning("Game was already started.")
     else:
         slowClick(Locs.chrome_taskbar, 10)
@@ -193,10 +198,10 @@ def startGame():
     deadClick()
     resizeChrome()
     deadClick(2)
-    if Settings.open_ge:
+    if Settings.open_ge and not was_started:
         open_ge()
-    else:
-        closeAnythingIfNecessary("start")
+    # else:
+    #     closeAnythingIfNecessary("start")
 
 
 def open_ge():
@@ -446,7 +451,8 @@ def doStuff2():
         closeAnythingIfNecessary("start")
 
         if Settings.run_checks:
-            runChecks(Settings.check_neighbors)
+            if not i == 0 or Settings.run_checks_on_first:
+                runChecks(Settings.check_neighbors)
 
         collectB()
 
@@ -456,17 +462,24 @@ def doStuff2():
             slowClick(Locs.chrome_close)
 
         if Settings.collect_smiths and Settings.smith_production == 0:
-            for i in range(12):
+            for j in range(12):
                 wait(one_hour_time/12 - one_minute_time)
                 collectB(true, true)
             wait(one_hour_time/12 - one_minute_time*3)
         elif Settings.collect_smiths and Settings.smith_production == 1:
-            for i in range(4):
+            for j in range(4):
                 wait(one_hour_time/4 - one_minute_time)
                 collectB(true, true)
             wait(one_hour_time/4 - one_minute_time*3)
         elif Settings.loop_quests and i < Settings.quest_loops:
-            loop_ub_quests(Settings.quests_to_loop, i)
+            if not loop_ub_quests(Settings.quests_to_loop, i):
+                slowClick(Locs.chrome_close)
+                #waiting 15 minutes for user
+                Logging.warning("Looping failed waiting for user.")
+                wait(15*one_minute_time)
+            else:
+                slowClick(Locs.chrome_close)
+                wait(10)
         else:
             wait(Settings.shutdown_wait_time)
 
@@ -546,12 +559,14 @@ def main():
     # resizeChrome()
     if Settings.do_test:
         pass
-        loop_ub_quest(1, 1)
+        # get_quest_names()
+        loop_ub_quest(100000, 1)
     # wait(1200)
     if Settings.do_stuff:
         pass
         doStuff2()
 
+    # getColorAt(Host.dead_click)
     #report_quest_reward(0)
     #getColorSum(Rect(515, 397, 103, 61))
     #collectAlchemist()

@@ -72,11 +72,11 @@ start_production_spot = [
 
 
 def loop_ub_quests(num, iteration):
-    if not click_quest(Colors.OPEN_QUEST):
+    # if not click_quest(Colors.OPEN_QUEST):
+    #     return false
+    # for i in range(num):
+    if not loop_ub_quest(num, iteration):
         return false
-    for i in range(num):
-        if not loop_ub_quest(i, iteration):
-            return false
     deadClick(1)
     return true
     #click_quest(Colors.CLOSE_QUEST)
